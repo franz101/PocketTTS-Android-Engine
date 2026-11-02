@@ -1412,12 +1412,31 @@ public:
         int threads_dec = std::max(1, total / 2);
         int threads_ar = std::max(1, total - threads_dec);
         int threads_full = total;
-        
-        auto make_opts = [](int threads) {
+        // Benchmark knobs (environment): PTT_AR_THREADS, PTT_DEC_THREADS,
+        // PTT_DEC_ARENA=1, PTT_SPIN=0|1, PTT_EP=xnnpack.
+        auto env_int = [](const char* k, int dflt) {
+            const char* v = std::getenv(k); return (v && *v) ? std::atoi(v) : dflt;
+        };
+        threads_ar = env_int("PTT_AR_THREADS", threads_ar);
+        threads_dec = env_int("PTT_DEC_THREADS", threads_dec);
+        const int spin = env_int("PTT_SPIN", -1);
+        const char* ep_env = std::getenv("PTT_EP");
+        const std::string ep = ep_env ? ep_env : "";
+
+        auto tune = [spin, ep](Ort::SessionOptions& opts, int threads) {
+            if (spin >= 0) opts.AddConfigEntry("session.intra_op.allow_spinning", spin ? "1" : "0");
+            if (ep == "xnnpack") {
+                opts.AddConfigEntry("session.intra_op.allow_spinning", "0");
+                opts.AppendExecutionProvider("XNNPACK", {{"intra_op_num_threads", std::to_string(threads)}});
+                opts.SetIntraOpNumThreads(1);
+            }
+        };
+        auto make_opts = [tune](int threads) {
             Ort::SessionOptions opts;
             opts.SetIntraOpNumThreads(threads);
             opts.SetInterOpNumThreads(1);
             opts.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
+            tune(opts, threads);
             return opts;
         };
         
@@ -1426,20 +1445,24 @@ public:
         // so a single large allocation permanently inflates RSS.
         //   - mimi_encoder: processes up to 720k float samples on cache miss
         //   - mimi_decoder: reset per sentence during streaming
-        auto make_opts_no_arena = [](int threads) {
+        auto make_opts_no_arena = [tune](int threads) {
             Ort::SessionOptions opts;
             opts.SetIntraOpNumThreads(threads);
             opts.SetInterOpNumThreads(1);
             opts.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
             opts.DisableMemPattern();
             opts.DisableCpuMemArena();
+            tune(opts, threads);
             return opts;
         };
-        
+
         auto opts_full = make_opts(threads_full);
         auto opts_ar = make_opts(threads_ar);
         auto opts_enc = make_opts_no_arena(threads_full);
-        auto opts_dec = make_opts_no_arena(threads_dec);
+        // Decoder arena ON by default: measured ~25% less decoder time on a
+        // Pixel 10 Pro (Tensor G5); the decoder is the pipeline bottleneck.
+        // Trade-off: ORT's arena keeps peak decoder memory resident.
+        auto opts_dec = env_int("PTT_DEC_ARENA", 1) ? make_opts(threads_dec) : make_opts_no_arena(threads_dec);
         
         if (cfg_.verbose) {
             std::cout << "\n========== ONNX RUNTIME INFO ==========\n";
@@ -2115,9 +2138,14 @@ void PocketTTS::stream(const std::string& text, const Tensor& voice, StreamCallb
         });
         
         bool first = true;
-        
+        // Ramp chunk sizes (1, 2, 4, 8, ... max) instead of jumping from the
+        // first tiny chunk straight to max_chunk_frames. With a jump, playback
+        // of the first 80 ms frame runs dry long before the next 15-frame chunk
+        // is decoded, which is heard as a stutter right after the first word.
+        int ramp = std::max(1, cfg_.first_chunk_frames);
+
         while (true) {
-            int want = first ? cfg_.first_chunk_frames : cfg_.max_chunk_frames;
+            int want = first ? cfg_.first_chunk_frames : std::min(cfg_.max_chunk_frames, ramp);
             
             std::vector<Tensor> batch;
             {
@@ -2151,6 +2179,7 @@ void PocketTTS::stream(const std::string& text, const Tensor& voice, StreamCallb
                     break;
                 }
                 first = false;
+                ramp = std::min(cfg_.max_chunk_frames, ramp * 2);
             }
         }
         
@@ -2913,15 +2942,27 @@ int main(int argc, char* argv[]) {
                 if (pocket_tts::g_prof.enabled) {
                     std::vector<float> samples;
                     bool first = true;
+                    // Simulated real-time playback: the player starts with the
+                    // first chunk; a chunk arriving after the audio already
+                    // received has finished playing is an audible gap (underrun).
+                    double play_clock_ms = 0, stall_ms = 0; int stalls = 0;
                     tts.stream(text, voice, [&](const float* s, size_t n) {
+                        double now = std::chrono::duration<double, std::milli>(
+                            std::chrono::high_resolution_clock::now() - t0).count();
                         if (first) {
-                            first_chunk_latency = std::chrono::duration<double, std::milli>(
-                                std::chrono::high_resolution_clock::now() - t0).count();
+                            first_chunk_latency = now;
+                            play_clock_ms = now;
                             first = false;
+                        } else if (now > play_clock_ms) {
+                            stall_ms += now - play_clock_ms; stalls++;
+                            play_clock_ms = now;
                         }
+                        play_clock_ms += 1000.0 * n / pocket_tts::PocketTTS::SR;
                         samples.insert(samples.end(), s, s + n);
                         return true;
                     });
+                    std::cerr << "  Playback underruns: " << stalls << " totalling "
+                              << std::fixed << std::setprecision(0) << stall_ms << "ms\n";
                     audio = {std::move(samples), pocket_tts::PocketTTS::SR};
                 } else {
                     audio = tts.generate(text, voice);
