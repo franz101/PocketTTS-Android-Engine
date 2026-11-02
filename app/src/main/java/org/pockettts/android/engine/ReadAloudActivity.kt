@@ -1,6 +1,5 @@
 package org.pockettts.android.engine
 
-import android.app.Activity
 import android.content.Intent
 import android.media.AudioAttributes
 import android.os.Bundle
@@ -9,74 +8,67 @@ import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.text.InputFilter
-import android.text.InputType
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.ScrollView
 import android.widget.TextView
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.chip.Chip
+import com.google.android.material.color.DynamicColors
+import com.google.android.material.textfield.TextInputLayout
 import java.util.UUID
 
 /** Receives plain text without following links, opening attachments or speaking automatically. */
-class ReadAloudActivity : Activity() {
+class ReadAloudActivity : AppCompatActivity() {
     private lateinit var input: EditText
     private lateinit var play: Button
     private lateinit var stop: Button
     private lateinit var status: TextView
+    private lateinit var selection: Chip
     private var tts: TextToSpeech? = null
     private var ready = false
     private var destroyed = false
     private var activeUtterance: String? = null
 
     override fun onCreate(state: Bundle?) {
+        enableEdgeToEdge()
+        DynamicColors.applyToActivityIfAvailable(this)
         super.onCreate(state)
         val maxLength = TextToSpeech.getMaxSpeechInputLength()
-        val content = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(20), dp(20), dp(20), dp(20))
-        }
-        ViewCompat.setOnApplyWindowInsetsListener(content) { view, insets ->
-            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime())
-            view.setPadding(dp(20), bars.top + dp(20), dp(20), bars.bottom + dp(20))
+        setContentView(R.layout.activity_read_aloud)
+        val toolbar = findViewById<MaterialToolbar>(R.id.read_aloud_toolbar)
+        val actions = findViewById<View>(R.id.read_aloud_actions)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.read_aloud_root)) { _, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
+            toolbar.setPadding(bars.left, bars.top, bars.right, 0)
+            actions.setPadding(bars.left + dp(16), dp(12), bars.right + dp(16), maxOf(bars.bottom, ime.bottom) + dp(12))
             insets
         }
-        content.addView(TextView(this).apply { text = getString(R.string.read_aloud); textSize = 24f })
-        content.addView(TextView(this).apply { text = getString(R.string.read_aloud_help) })
-        input = EditText(this).apply {
-            id = R.id.read_aloud_text
-            hint = getString(R.string.read_aloud_text)
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or
-                InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
-            minLines = 4
+        toolbar.setNavigationOnClickListener { finish() }
+        selection = findViewById(R.id.read_aloud_selection)
+        selection.setOnClickListener { openConfiguration() }
+        findViewById<TextInputLayout>(R.id.read_aloud_text_layout).counterMaxLength = maxLength
+        input = findViewById<EditText>(R.id.read_aloud_text).apply {
             filters = arrayOf(InputFilter.LengthFilter(maxLength))
             // Keep shared text out of automatic view-state persistence.
             isSaveEnabled = false
-            importantForAutofill = android.view.View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
+            importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
         }
-        content.addView(input, LinearLayout.LayoutParams(-1, -2))
-        play = Button(this).apply {
-            id = R.id.read_aloud_play
-            text = getString(R.string.read_aloud_play)
+        play = findViewById<Button>(R.id.read_aloud_play).apply {
             isEnabled = false
             setOnClickListener { speak() }
         }
-        content.addView(play)
-        stop = Button(this).apply {
-            id = R.id.read_aloud_stop
-            text = getString(R.string.read_aloud_stop)
+        stop = findViewById<Button>(R.id.read_aloud_stop).apply {
             isEnabled = false
             setOnClickListener { stopReading() }
         }
-        content.addView(stop)
-        content.addView(Button(this).apply {
-            text = getString(R.string.read_aloud_configure)
-            setOnClickListener { startActivity(Intent(this@ReadAloudActivity, MainActivity::class.java)) }
-        })
-        status = TextView(this).apply { id = R.id.read_aloud_status }
-        content.addView(status)
-        setContentView(ScrollView(this).apply { addView(content) })
+        findViewById<View>(R.id.read_aloud_configure).setOnClickListener { openConfiguration() }
+        status = findViewById(R.id.read_aloud_status)
 
         val shared = if (intent.action == Intent.ACTION_SEND && intent.type == "text/plain") {
             runCatching { intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString() }.getOrNull()
@@ -105,6 +97,20 @@ class ReadAloudActivity : Activity() {
             override fun onError(utteranceId: String?, errorCode: Int) =
                 complete(utteranceId, R.string.read_aloud_failed)
         })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // The pack or voice may have changed in the configuration screen.
+        val pack = ModelPackRepository.selectedPack(this)
+        val voice = pack?.voices?.firstOrNull { it.id == ModelPackRepository.selectedVoiceId(this, pack) }
+        selection.text = if (pack != null && voice != null) {
+            getString(R.string.selection_summary, pack.displayName, voice.displayName)
+        } else getString(R.string.error_no_model_voice)
+    }
+
+    private fun openConfiguration() {
+        startActivity(Intent(this, MainActivity::class.java))
     }
 
     private fun speak() {

@@ -77,4 +77,30 @@
     <string name="read_aloud_done">Finished reading.</string>
     <string name="read_aloud_reading">Reading…</string>
     <string name="read_aloud_stopped">Stopped.</string>
+    <string name="section_system">System</string>
+    <string name="selected_pack_hint">Active language pack</string>
+    <string name="selected_voice_hint">Active voice</string>
+    <string name="voice_help">Android and Read aloud use this voice. Add your own from a short, clean WAV recording — only with the speaker’s permission.</string>
+    <string name="action_import_pack">Import ZIP</string>
+    <string name="action_download_packs">Get packs</string>
+    <string name="action_delete_pack">Delete pack</string>
+    <string name="action_import_voice">Import WAV</string>
+    <string name="param_temperature">Temperature</string>
+    <string name="param_temperature_help">Lower values sound steadier, higher values more expressive.</string>
+    <string name="param_lsd_steps">LSD steps</string>
+    <string name="param_lsd_steps_help">More steps can improve quality but slow down generation.</string>
+    <string name="param_cpu_threads">CPU threads</string>
+    <string name="param_cpu_threads_help">More threads speed up generation on devices with many cores.</string>
+    <string name="param_sentence_pause">Sentence pause</string>
+    <string name="param_sentence_pause_help">Silence inserted after each sentence.</string>
+    <string name="param_max_text_tokens">Text tokens per segment</string>
+    <string name="param_max_text_tokens_help">Smaller segments start speaking sooner; larger ones flow more naturally.</string>
+    <string name="value_milliseconds">%1$d ms</string>
+    <string name="engine_default_title">Pocket TTS is the system voice</string>
+    <string name="engine_default_body">Apps that use Android text-to-speech speak with Pocket TTS.</string>
+    <string name="engine_not_default_title">Pocket TTS is not the default engine</string>
+    <string name="engine_not_default_body">Choose Pocket TTS as the preferred engine in Android’s text-to-speech settings.</string>
+    <string name="action_set_default">Set as default</string>
+    <string name="navigate_back">Back</string>
+    <string name="selection_summary" translatable="false">%1$s · %2$s</string>
 </resources>

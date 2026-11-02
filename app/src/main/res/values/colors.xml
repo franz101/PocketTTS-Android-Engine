@@ -1,0 +1,39 @@
+<resources>
+    <!-- Fallback Material 3 palette, used when dynamic color (Android 12+) is unavailable.
+         Derived from the indigo/violet glow of the hero artwork with a warm orange tertiary. -->
+    <color name="pt_primary">#5B4FC9</color>
+    <color name="pt_on_primary">#FFFFFF</color>
+    <color name="pt_primary_container">#E4DFFF</color>
+    <color name="pt_on_primary_container">#170065</color>
+    <color name="pt_secondary">#5E5C71</color>
+    <color name="pt_on_secondary">#FFFFFF</color>
+    <color name="pt_secondary_container">#E3E0F9</color>
+    <color name="pt_on_secondary_container">#1B192C</color>
+    <color name="pt_tertiary">#8F4C1F</color>
+    <color name="pt_on_tertiary">#FFFFFF</color>
+    <color name="pt_tertiary_container">#FFDBC9</color>
+    <color name="pt_on_tertiary_container">#331200</color>
+    <color name="pt_error">#BA1A1A</color>
+    <color name="pt_on_error">#FFFFFF</color>
+    <color name="pt_error_container">#FFDAD6</color>
+    <color name="pt_on_error_container">#410002</color>
+    <color name="pt_surface">#FDF8FF</color>
+    <color name="pt_on_surface">#1C1B20</color>
+    <color name="pt_surface_variant">#E5E0EC</color>
+    <color name="pt_on_surface_variant">#48454E</color>
+    <color name="pt_outline">#79757F</color>
+    <color name="pt_outline_variant">#C9C5D0</color>
+    <color name="pt_surface_container_lowest">#FFFFFF</color>
+    <color name="pt_surface_container_low">#F7F2FA</color>
+    <color name="pt_surface_container">#F1ECF4</color>
+    <color name="pt_surface_container_high">#EBE6EE</color>
+    <color name="pt_surface_container_highest">#E6E1E9</color>
+    <color name="pt_surface_dim">#DDD8E0</color>
+    <color name="pt_surface_bright">#FDF8FF</color>
+    <color name="pt_inverse_surface">#313036</color>
+    <color name="pt_inverse_on_surface">#F4EFF7</color>
+    <color name="pt_inverse_primary">#C6BFFF</color>
+    <!-- Hero artwork backdrop; identical in light and dark mode. -->
+    <color name="pt_hero_background">#090A1F</color>
+    <color name="pt_hero_scrim">#E6090A1F</color>
+</resources>
