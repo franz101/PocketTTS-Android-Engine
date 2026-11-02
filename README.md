@@ -48,8 +48,8 @@ plus a built-in reader with sentence highlighting.
   | English / German / Spanish / Italian / Portuguese · HQ | ~207 MB | upstream FP32 |
   | German 24L · Beta | 248 MB | upstream 24-layer INT8, needs lots of memory |
 
-  The 4-bit trick only holds up in English: German and Italian 4-bit builds
-  doubled the word error rate, so they aren't offered.
+  The 4-bit trick only holds up in English: German, Italian, Spanish and Portuguese
+  4-bit builds had far higher word error rates, so they aren't offered.
   ZIPs still work with **Import ZIP**.
 
 ## Benchmarks and quality tools
