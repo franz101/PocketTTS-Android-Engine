@@ -22,14 +22,14 @@ internal object UiKit {
     val emphasized = PathInterpolator(0.2f, 0f, 0f, 1f)
 
     private val avatarPalettes = listOf(
-        intArrayOf(0xFF7C5CFF.toInt(), 0xFFFF5CA8.toInt()),
-        intArrayOf(0xFFFF5CA8.toInt(), 0xFFFFB15C.toInt()),
-        intArrayOf(0xFF3D8BFF.toInt(), 0xFF8B6CFF.toInt()),
-        intArrayOf(0xFF17C3A2.toInt(), 0xFF3D8BFF.toInt()),
-        intArrayOf(0xFFFFA84C.toInt(), 0xFFFF5E7E.toInt()),
-        intArrayOf(0xFFA35CFF.toInt(), 0xFF4CC9FF.toInt()),
-        intArrayOf(0xFFFF7A59.toInt(), 0xFFB45CFF.toInt()),
-        intArrayOf(0xFF4C6FFF.toInt(), 0xFF2ED3A0.toInt())
+        intArrayOf(0xFF0A2A5E.toInt(), 0xFF4FA3FF.toInt()),
+        intArrayOf(0xFF1F55C4.toInt(), 0xFF7DC0FF.toInt()),
+        intArrayOf(0xFF0E3A7A.toInt(), 0xFF3B82F6.toInt()),
+        intArrayOf(0xFF123B6B.toInt(), 0xFF38BDF8.toInt()),
+        intArrayOf(0xFF1E3A8A.toInt(), 0xFF60A5FA.toInt()),
+        intArrayOf(0xFF0B2447.toInt(), 0xFF2563EB.toInt()),
+        intArrayOf(0xFF164E8C.toInt(), 0xFF93C5FD.toInt()),
+        intArrayOf(0xFF0F2F57.toInt(), 0xFF0EA5E9.toInt())
     )
 
     fun dp(context: Context, value: Float): Int = (value * context.resources.displayMetrics.density + 0.5f).toInt()

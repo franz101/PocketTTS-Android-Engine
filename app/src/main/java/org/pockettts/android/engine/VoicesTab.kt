@@ -16,7 +16,8 @@ import com.google.android.material.progressindicator.CircularProgressIndicator
 import kotlin.concurrent.thread
 
 /** The Voices tab: a grid of voice cards, voice cloning, and the installed language packs. */
-internal class VoicesTab(private val activity: MainActivity, root: View) {
+internal class VoicesTab(private val activity: MainActivity, private val rootView: View) {
+    private val root = rootView
     private val grid: LinearLayout = root.findViewById(R.id.voice_grid)
     private val empty: View = root.findViewById(R.id.voices_empty)
     private val busyCard: View = root.findViewById(R.id.voices_busy)
@@ -45,12 +46,16 @@ internal class VoicesTab(private val activity: MainActivity, root: View) {
     init {
         cloneCard.setOnClickListener { activity.startVoiceImport() }
         root.findViewById<View>(R.id.import_pack_button).setOnClickListener { activity.confirmModelPackImport() }
-        root.findViewById<View>(R.id.download_packs_button).setOnClickListener { activity.openPackDownloads() }
+        root.findViewById<View>(R.id.download_packs_button).setOnClickListener { activity.getPacks() }
         root.findViewById<View>(R.id.empty_import_pack).setOnClickListener { activity.confirmModelPackImport() }
-        root.findViewById<View>(R.id.empty_get_packs).setOnClickListener { activity.openPackDownloads() }
+        root.findViewById<View>(R.id.empty_get_packs).setOnClickListener { activity.downloadFastPack() }
     }
 
     fun render(packs: List<ModelPack>) {
+        val fastLabel = activity.getString(R.string.action_download_fast_pack, "103 MB")
+        rootView.findViewById<TextView>(R.id.empty_get_packs).text = fastLabel
+        rootView.findViewById<TextView>(R.id.download_packs_button).text =
+            if (PackDownloader.isInstalled(activity)) activity.getString(R.string.action_download_packs) else fastLabel
         val inflater = LayoutInflater.from(activity)
         val entries = packs.flatMap { pack -> pack.voices.map { VoiceEntry(pack, it) } }
         cards.clear()

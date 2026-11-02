@@ -157,4 +157,8 @@
         <item quantity="other">%d Stimmen</item>
     </plurals>
     <string name="recent_just_now">Gerade eben</string>
+    <string name="action_download_fast_pack">Englische Stimme laden (%1$s)</string>
+    <string name="status_downloading_pack">Englische Stimme wird geladen… %1$d%%</string>
+    <string name="status_download_done">Englische Stimme installiert und bereit</string>
+    <string name="status_download_failed">Download fehlgeschlagen: %1$s</string>
 </resources>

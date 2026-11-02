@@ -1,13 +1,57 @@
-# Pocket TTS Android Engine
+# Pocket TTS — fast offline read-aloud for Android
 
-An unofficial, fully on-device Android text-to-speech engine for
-[Kyutai Pocket TTS](https://github.com/kyutai-labs/pocket-tts). It wraps the
-[PocketTTS.cpp](https://github.com/VolgaGerm/PocketTTS.cpp) ONNX runtime in JNI
-and exposes it through Android's `TextToSpeechService`, so applications such as
-[Layla](https://www.layla-network.ai/) can use Pocket TTS as a native system
-voice.
+A fork of [Pocket TTS Android Engine](https://github.com/The-unknown-Shadowman/PocketTTS-Android-Engine):
+an on-device Android text-to-speech engine for
+[Kyutai Pocket TTS](https://github.com/kyutai-labs/pocket-tts) that works as a
+system voice in **Google Play Books**, Moon+ Reader and any app that reads aloud,
+plus a built-in reader with sentence highlighting.
 
-![Pocket TTS Android Engine artwork](docs/images/pocket_voice_hero.png)
+| Listen | Player | Voices | Engine |
+| :---: | :---: | :---: | :---: |
+| ![Listen](docs/images/screenshots/dark_listen.png) | ![Player](docs/images/screenshots/dark_player.png) | ![Voices](docs/images/screenshots/dark_voices.png) | ![Engine](docs/images/screenshots/dark_engine.png) |
+
+| Light mode | |
+| :---: | :---: |
+| ![Listen, light](docs/images/screenshots/light_listen.png) | ![Voices, light](docs/images/screenshots/light_voices.png) |
+
+## What this fork adds
+
+- **Works in Google Play Books.** Books only looks for TTS engines that handle
+  `INSTALL_TTS_DATA`; without it Android's package visibility hid the engine
+  ("Dropping phrase since engine failed to initialize").
+- **Faster, same quality.** A 4-bit main language model (other graphs FP32),
+  the Mimi decoder's memory arena enabled, and ramped streaming chunks.
+  Measured on a Pixel 10 Pro (Tensor G5): **~3.5× real time**, ~300 ms to
+  first audio, no playback underruns, vs ~2.4× for the original setup.
+- **Quality-checked.** Every variant was scored with Whisper word error rate and
+  UTMOS on 18 book sentences. The fast pack: WER 3.5% / UTMOS 4.38 vs FP32
+  2.9% / 4.43. Faster all-INT8 builds were rejected (they drop words).
+- **Voice downloads itself.** On first launch over Wi-Fi the app fetches the
+  English "Fast" pack (103 MB) and verifies it against a SHA-256 pinned in the
+  app before installing; on mobile data it's one tap. Synthesis stays offline.
+- **New app:** Listen / Voices / Engine tabs and a player with sentence
+  highlighting, tap-to-jump, 0.75–2× speed and no length limit.
+
+## Download
+
+- **APK:** [latest release of this fork](https://github.com/franz101/PocketTTS-Android-Engine/releases/latest)
+  (ARM64, Android 8+). It's signed with this fork's key, so uninstall the
+  upstream app first if it's installed.
+- **English "Fast" pack** (downloaded by the app automatically):
+  [PocketTTS-english-Q4.zip](https://pub-f9b8d4e264df41da9c0c5f6b69e46827.r2.dev/PocketTTS-english-Q4.zip),
+  SHA-256 `9b98434c8c56b895e87299aea6afbc01ea84df1f18dd5e7a85c015e447686de5`.
+- Other languages: use the upstream packs and **Import ZIP**.
+
+## Benchmarks and quality tools
+
+`tools/bench/` has everything used for the numbers above: an ARM64 CLI build for
+on-device runs over adb, a benchmark runner (time to first audio, real-time
+factor, per-model time, playback underruns), a quantizer for INT8/4-bit
+variants, and Whisper-WER + UTMOS scoring.
+
+---
+
+The original project README follows.
 
 > Status: experimental community software for ARM64 Android devices.
 > See [compatibility and support](#compatibility-and-support) for requirements

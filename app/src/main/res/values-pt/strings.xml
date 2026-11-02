@@ -158,4 +158,8 @@
         <item quantity="other">%d vozes</item>
     </plurals>
     <string name="recent_just_now">Agora mesmo</string>
+    <string name="action_download_fast_pack">Transferir voz inglesa (%1$s)</string>
+    <string name="status_downloading_pack">A transferir voz inglesa… %1$d%%</string>
+    <string name="status_download_done">Voz inglesa instalada e pronta</string>
+    <string name="status_download_failed">A transferência falhou: %1$s</string>
 </resources>

@@ -164,4 +164,8 @@
         <item quantity="other">%d voices</item>
     </plurals>
     <string name="recent_just_now">Just now</string>
+    <string name="action_download_fast_pack">Download English voice (%1$s)</string>
+    <string name="status_downloading_pack">Downloading English voice… %1$d%%</string>
+    <string name="status_download_done">English voice installed and ready</string>
+    <string name="status_download_failed">Download failed: %1$s</string>
 </resources>

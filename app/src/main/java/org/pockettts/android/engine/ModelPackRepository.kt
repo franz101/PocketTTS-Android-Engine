@@ -144,11 +144,18 @@ internal object ModelPackRepository {
             .apply()
     }
 
-    fun importPack(context: Context, uri: Uri): ModelPack {
+    fun importPack(context: Context, uri: Uri): ModelPack =
+        importPackStream(context) { openSelectedDocument(context, uri, R.string.error_open_pack) }
+
+    /** Installs a pack ZIP the app downloaded itself and verified against a pinned SHA-256. */
+    internal fun importVerifiedPackFile(context: Context, zip: File): ModelPack =
+        importPackStream(context) { zip.inputStream() }
+
+    private fun importPackStream(context: Context, open: () -> InputStream): ModelPack {
         val staging = File(packsRoot(context), ".import-${UUID.randomUUID()}").apply { mkdirs() }.canonicalFile
         val stagingPath = staging.toPath().toAbsolutePath().normalize()
         try {
-            openSelectedDocument(context, uri, R.string.error_open_pack).use { input ->
+            open().use { input ->
                 ZipInputStream(input.buffered()).use { zip ->
                     var entryCount = 0
                     var extractedBytes = 0L

@@ -1,19 +1,19 @@
 <resources>
-    <color name="pt_background">#F7F7FB</color>
+    <color name="pt_background">#FFFFFF</color>
     <color name="pt_surface">#FFFFFF</color>
-    <color name="pt_surface_high">#F0F0F6</color>
-    <color name="pt_outline">#E6E7EF</color>
-    <color name="pt_text">#10121A</color>
-    <color name="pt_text_secondary">#5D6275</color>
-    <color name="pt_text_tertiary">#8A8FA3</color>
+    <color name="pt_surface_high">#F2F6FC</color>
+    <color name="pt_outline">#E1E8F2</color>
+    <color name="pt_text">#0A1A33</color>
+    <color name="pt_text_secondary">#4B5D7A</color>
+    <color name="pt_text_tertiary">#8191AA</color>
     <color name="pt_success">#0E9F6E</color>
     <color name="pt_warning">#B86E00</color>
     <color name="pt_error">#D63649</color>
-    <color name="pt_accent">#6B4DFF</color>
-    <color name="pt_accent_soft">#1A6B4DFF</color>
-    <color name="pt_accent_text">#5B3DF0</color>
+    <color name="pt_accent">#1D4ED8</color>
+    <color name="pt_accent_soft">#1A1D4ED8</color>
+    <color name="pt_accent_text">#1D4ED8</color>
     <color name="pt_success_soft">#1F0E9F6E</color>
     <color name="pt_warning_soft">#24FFB547</color>
-    <color name="pt_nav_indicator">#1F6B4DFF</color>
-    <color name="pt_status_scrim">#EBF7F7FB</color>
+    <color name="pt_nav_indicator">#1F1D4ED8</color>
+    <color name="pt_status_scrim">#EBFFFFFF</color>
 </resources>

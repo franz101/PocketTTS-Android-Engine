@@ -1,40 +1,40 @@
 <resources>
     <!-- Pocket TTS brand palette. Dark is the primary look and the default resource set;
          values-notnight overrides the theme-dependent tokens for light mode. -->
-    <color name="pt_background">#0A0B10</color>
-    <color name="pt_surface">#14161F</color>
-    <color name="pt_surface_high">#1C1F2B</color>
-    <color name="pt_outline">#2A2E3D</color>
-    <color name="pt_text">#F4F5F8</color>
-    <color name="pt_text_secondary">#9AA0B4</color>
-    <color name="pt_text_tertiary">#6B7187</color>
+    <color name="pt_background">#07111F</color>
+    <color name="pt_surface">#0D1A2D</color>
+    <color name="pt_surface_high">#13233D</color>
+    <color name="pt_outline">#1E3352</color>
+    <color name="pt_text">#F2F6FC</color>
+    <color name="pt_text_secondary">#96A7C2</color>
+    <color name="pt_text_tertiary">#647690</color>
     <color name="pt_success">#3DDC97</color>
     <color name="pt_warning">#FFB547</color>
     <color name="pt_error">#FF6B7A</color>
-    <color name="pt_accent">#8B6CFF</color>
-    <color name="pt_accent_soft">#298B6CFF</color>
-    <color name="pt_accent_text">#B9A6FF</color>
+    <color name="pt_accent">#4C8DFF</color>
+    <color name="pt_accent_soft">#294C8DFF</color>
+    <color name="pt_accent_text">#9CC2FF</color>
     <color name="pt_success_soft">#243DDC97</color>
     <color name="pt_warning_soft">#24FFB547</color>
-    <color name="pt_nav_indicator">#2E8B6CFF</color>
+    <color name="pt_nav_indicator">#2E4C8DFF</color>
 
     <!-- Brand gradient (135°), identical in both themes. -->
-    <color name="pt_grad_start">#7C5CFF</color>
-    <color name="pt_grad_mid">#FF5CA8</color>
-    <color name="pt_grad_end">#FFB15C</color>
+    <color name="pt_grad_start">#0A2A5E</color>
+    <color name="pt_grad_mid">#1F55C4</color>
+    <color name="pt_grad_end">#4FA3FF</color>
     <color name="pt_on_gradient">#FFFFFF</color>
     <color name="pt_on_gradient_soft">#D9FFFFFF</color>
     <color name="pt_glass_strong">#F2FFFFFF</color>
 
     <!-- The player is always dark, independent of the system theme. -->
-    <color name="player_background">#0A0B10</color>
-    <color name="player_surface">#14161F</color>
-    <color name="player_surface_high">#1C1F2B</color>
-    <color name="player_outline">#2A2E3D</color>
-    <color name="player_text">#F4F5F8</color>
-    <color name="player_text_dim">#8A90A4</color>
-    <color name="player_text_read">#A7ACBD</color>
-    <color name="player_highlight">#3D8B6CFF</color>
-    <color name="player_accent">#B9A6FF</color>
-    <color name="pt_status_scrim">#EB0A0B10</color>
+    <color name="player_background">#07111F</color>
+    <color name="player_surface">#0D1A2D</color>
+    <color name="player_surface_high">#13233D</color>
+    <color name="player_outline">#1E3352</color>
+    <color name="player_text">#F2F6FC</color>
+    <color name="player_text_dim">#8798B3</color>
+    <color name="player_text_read">#A9B7CC</color>
+    <color name="player_highlight">#3D4C8DFF</color>
+    <color name="player_accent">#9CC2FF</color>
+    <color name="pt_status_scrim">#EB07111F</color>
 </resources>

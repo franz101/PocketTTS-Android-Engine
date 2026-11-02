@@ -158,4 +158,8 @@
         <item quantity="other">%d voces</item>
     </plurals>
     <string name="recent_just_now">Justo ahora</string>
+    <string name="action_download_fast_pack">Descargar voz en inglés (%1$s)</string>
+    <string name="status_downloading_pack">Descargando voz en inglés… %1$d%%</string>
+    <string name="status_download_done">Voz en inglés instalada y lista</string>
+    <string name="status_download_failed">Error en la descarga: %1$s</string>
 </resources>

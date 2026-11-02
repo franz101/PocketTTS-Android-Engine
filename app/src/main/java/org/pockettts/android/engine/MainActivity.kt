@@ -92,6 +92,43 @@ class MainActivity : AppCompatActivity() {
         refreshData()
         val initialTab = state?.getInt(STATE_TAB) ?: tabFromIntent(intent)
         showTab(initialTab, animate = false)
+        PackDownloader.addListener(downloadListener)
+        // First launch with nothing installed: fetch the recommended English pack
+        // automatically when that can't cost mobile data; otherwise one tap on Voices.
+        if (state == null && packs.isEmpty() && PackDownloader.state == PackDownloader.State.Idle &&
+            PackDownloader.isUnmetered(this)
+        ) {
+            downloadFastPack()
+        }
+    }
+
+    private val downloadListener: (PackDownloader.State) -> Unit = { s ->
+        if (uiCreated) when (s) {
+            is PackDownloader.State.Running -> voicesTab.setBusy(
+                getString(R.string.status_downloading_pack, (100 * s.downloaded / s.total).toInt())
+            )
+            PackDownloader.State.Installing -> voicesTab.setBusy(getString(R.string.status_importing_pack))
+            PackDownloader.State.Done -> {
+                voicesTab.setBusy(null)
+                refreshData(getString(R.string.status_download_done))
+            }
+            is PackDownloader.State.Failed -> {
+                voicesTab.setBusy(null)
+                showMessage(getString(R.string.status_download_failed, s.message))
+            }
+            PackDownloader.State.Idle -> Unit
+        }
+    }
+
+    internal fun downloadFastPack() {
+        if (PackDownloader.isBusy) return
+        showTab(TAB_VOICES, animate = true)
+        PackDownloader.start(this)
+    }
+
+    /** "Get packs": download the recommended pack in-app, or browse all packs once it's installed. */
+    internal fun getPacks() {
+        if (PackDownloader.isInstalled(this)) openPackDownloads() else downloadFastPack()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -124,6 +161,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        PackDownloader.removeListener(downloadListener)
         if (uiCreated) preview.release()
         super.onDestroy()
     }
