@@ -49,6 +49,13 @@
                 <action android:name="android.speech.tts.engine.GET_SAMPLE_TEXT" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+            <!-- Opens the pack import screen. Also required for package visibility:
+                 Google Play Books queries only INSTALL_TTS_DATA, not TTS_SERVICE, so
+                 without this filter Books cannot see or bind to this engine. -->
+            <intent-filter>
+                <action android:name="android.speech.tts.engine.INSTALL_TTS_DATA" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
     </application>
 </manifest>

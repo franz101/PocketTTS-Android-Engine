@@ -106,6 +106,14 @@ class PocketTtsService : TextToSpeechService() {
             return
         }
         val (pack, voice) = resolved
+        if (text.isBlank()) {
+            // Readers such as Play Books send empty utterances (page breaks, images).
+            // Reporting an error here can abort the client's reading queue.
+            callback.start(SAMPLE_RATE, AudioFormat.ENCODING_PCM_16BIT, 1)
+            callback.done()
+            Log.i(TAG, "SYNTH_EMPTY done")
+            return
+        }
         Log.i(
             TAG,
             "SYNTH_START pack=${pack.id} voice=${voice.id} requestVoice=${request.voiceName} " +
