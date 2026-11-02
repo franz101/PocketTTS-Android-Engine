@@ -106,7 +106,7 @@
     <string name="error_empty_text">El archivo no contiene texto legible</string>
     <string name="voices_subtitle">Elige quién te lee. Toca reproducir para oír una muestra.</string>
     <string name="voices_empty_title">Aún no hay voces</string>
-    <string name="voices_empty_body">Las voces vienen en paquetes de idioma. Descarga un paquete ZIP e impórtalo aquí; todo se queda en tu dispositivo.</string>
+    <string name="voices_empty_body">Las voces vienen en paquetes de idioma. Descarga uno con un toque: se instala solo y la voz se genera por completo en tu dispositivo.</string>
     <string name="clone_voice_title">Clonar una voz</string>
     <string name="clone_voice_body">A partir de una grabación WAV breve y limpia</string>
     <string name="clone_voice_consent">Solo con el permiso de quien habla.</string>
@@ -159,7 +159,25 @@
     </plurals>
     <string name="recent_just_now">Justo ahora</string>
     <string name="action_download_fast_pack">Descargar voz en inglés (%1$s)</string>
-    <string name="status_downloading_pack">Descargando voz en inglés… %1$d%%</string>
-    <string name="status_download_done">Voz en inglés instalada y lista</string>
     <string name="status_download_failed">Error en la descarga: %1$s</string>
+    <string name="hub_title">Centro de modelos</string>
+    <string name="hub_subtitle">Descarga voces directamente en tu teléfono. Cada archivo se verifica antes de instalarlo.</string>
+    <string name="hub_download">Descargar</string>
+    <string name="hub_installed">Instalado</string>
+    <string name="hub_button_progress">Descargando… %1$d %%</string>
+    <string name="hub_queued">En espera…</string>
+    <string name="hub_progress">%1$d %% · %2$s de %3$s</string>
+    <string name="hub_installing">Verificando e instalando…</string>
+    <string name="hub_cancel">Cancelar descarga</string>
+    <string name="hub_recommended">Recomendado</string>
+    <string name="hub_tier_experimental">Beta</string>
+    <string name="hub_meta">%1$s · %2$s</string>
+    <string name="hub_note_fast">Rápido y con calidad verificada</string>
+    <string name="hub_note_hq">Modelo original de precisión completa</string>
+    <string name="hub_note_experimental">Modelo de 24 capas, necesita mucha memoria</string>
+    <string name="hub_no_space">No hay espacio suficiente (se necesitan %1$s)</string>
+    <string name="hub_done">Voz en %1$s instalada y lista</string>
+    <string name="hub_mobile_data_title">¿Usar datos móviles?</string>
+    <string name="hub_mobile_data_message">Esta descarga ocupa %1$s. No estás en una red Wi-Fi, así que podría usar tus datos móviles.</string>
+    <string name="status_download_cancelled">Descarga cancelada</string>
 </resources>

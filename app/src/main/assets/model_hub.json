@@ -1,0 +1,9 @@
+[
+  {"id": "english-q4", "languageTag": "en-US", "tier": "fast", "recommended": true, "url": "https://pub-f9b8d4e264df41da9c0c5f6b69e46827.r2.dev/PocketTTS-english-Q4.zip", "sha256": "9b98434c8c56b895e87299aea6afbc01ea84df1f18dd5e7a85c015e447686de5", "size": 102926223},
+  {"id": "english-fp32", "languageTag": "en-US", "tier": "hq", "url": "https://pub-f9b8d4e264df41da9c0c5f6b69e46827.r2.dev/PocketTTS-english-FP32.zip", "sha256": "f2027032434a8616855c12f505fec8864bcbaccd42de43bdf69bff340fb411c4", "size": 207764771},
+  {"id": "german-fp32", "languageTag": "de-DE", "tier": "hq", "url": "https://pub-f9b8d4e264df41da9c0c5f6b69e46827.r2.dev/PocketTTS-german-FP32.zip", "sha256": "e45e5d0b70dadc9ab9f86f30ae519d79dbfd8adf013d42826af9205545cfdcb3", "size": 207126318},
+  {"id": "spanish-fp32", "languageTag": "es-ES", "tier": "hq", "url": "https://pub-f9b8d4e264df41da9c0c5f6b69e46827.r2.dev/PocketTTS-spanish-FP32.zip", "sha256": "f83dc41bd0d5c7634d385fdadef496881d398ca99d1886ff25d90cb59e384412", "size": 207487086},
+  {"id": "italian-fp32", "languageTag": "it-IT", "tier": "hq", "url": "https://pub-f9b8d4e264df41da9c0c5f6b69e46827.r2.dev/PocketTTS-italian-FP32.zip", "sha256": "50ccb4c0fe3f2fdcd00a86b9f31112c8c3bef92cc0fe528c761270e4f8896a8d", "size": 207287262},
+  {"id": "portuguese-fp32", "languageTag": "pt-PT", "tier": "hq", "url": "https://pub-f9b8d4e264df41da9c0c5f6b69e46827.r2.dev/PocketTTS-portuguese-FP32.zip", "sha256": "4d1891c5acb5d9ecb6d1a8c3e5f2d57ee730b9408715d66ab1a3d640dedc30e9", "size": 207503964},
+  {"id": "german-24l-int8", "languageTag": "de-DE", "tier": "experimental", "url": "https://pub-f9b8d4e264df41da9c0c5f6b69e46827.r2.dev/PocketTTS-german-24L-INT8.zip", "sha256": "c498b9942b85f182f05024e4d9c3a4d771836234ad7f9269a4832a7b9ce3a929", "size": 248323576}
+]

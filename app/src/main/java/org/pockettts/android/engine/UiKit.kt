@@ -61,6 +61,12 @@ internal object UiKit {
         return name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(display) else it.toString() }
     }
 
+    fun languageName(locale: Locale): String {
+        val display = Locale.getDefault()
+        val name = locale.getDisplayLanguage(display).ifBlank { locale.toLanguageTag() }
+        return name.replaceFirstChar { if (it.isLowerCase()) it.titlecase(display) else it.toString() }
+    }
+
     fun languageCode(pack: ModelPack): String = pack.locale.language.uppercase(Locale.ROOT).take(3)
 
     fun avatar(seed: String): GradientDrawable = gradient(seed).apply { shape = GradientDrawable.OVAL }

@@ -106,7 +106,7 @@
     <string name="error_empty_text">O ficheiro não contém texto legível</string>
     <string name="voices_subtitle">Escolha quem lhe lê. Toque em reproduzir para ouvir uma amostra.</string>
     <string name="voices_empty_title">Ainda não há vozes</string>
-    <string name="voices_empty_body">As vozes vêm em pacotes de idioma. Transfira um pacote ZIP e importe-o aqui — tudo fica no seu dispositivo.</string>
+    <string name="voices_empty_body">As vozes vêm em pacotes de idioma. Transfira um com um toque — instala-se sozinho e a voz é gerada totalmente no seu dispositivo.</string>
     <string name="clone_voice_title">Clonar uma voz</string>
     <string name="clone_voice_body">A partir de uma gravação WAV curta e limpa</string>
     <string name="clone_voice_consent">Apenas com a autorização de quem fala.</string>
@@ -159,7 +159,25 @@
     </plurals>
     <string name="recent_just_now">Agora mesmo</string>
     <string name="action_download_fast_pack">Transferir voz inglesa (%1$s)</string>
-    <string name="status_downloading_pack">A transferir voz inglesa… %1$d%%</string>
-    <string name="status_download_done">Voz inglesa instalada e pronta</string>
     <string name="status_download_failed">A transferência falhou: %1$s</string>
+    <string name="hub_title">Centro de modelos</string>
+    <string name="hub_subtitle">Transfira vozes diretamente para o telemóvel. Cada ficheiro é verificado antes de ser instalado.</string>
+    <string name="hub_download">Transferir</string>
+    <string name="hub_installed">Instalado</string>
+    <string name="hub_button_progress">A transferir… %1$d%%</string>
+    <string name="hub_queued">Em espera…</string>
+    <string name="hub_progress">%1$d%% · %2$s de %3$s</string>
+    <string name="hub_installing">A verificar e instalar…</string>
+    <string name="hub_cancel">Cancelar transferência</string>
+    <string name="hub_recommended">Recomendado</string>
+    <string name="hub_tier_experimental">Beta</string>
+    <string name="hub_meta">%1$s · %2$s</string>
+    <string name="hub_note_fast">Rápido e com qualidade verificada</string>
+    <string name="hub_note_hq">Modelo original de precisão total</string>
+    <string name="hub_note_experimental">Modelo de 24 camadas, precisa de muita memória</string>
+    <string name="hub_no_space">Espaço livre insuficiente (são precisos %1$s)</string>
+    <string name="hub_done">Voz em %1$s instalada e pronta</string>
+    <string name="hub_mobile_data_title">Usar dados móveis?</string>
+    <string name="hub_mobile_data_message">Esta transferência tem %1$s. Não está ligado a Wi-Fi, por isso pode usar os seus dados móveis.</string>
+    <string name="status_download_cancelled">Transferência cancelada</string>
 </resources>

@@ -113,7 +113,7 @@
     <string name="error_empty_text">The file contains no readable text</string>
     <string name="voices_subtitle">Choose who reads to you. Tap play to hear a sample.</string>
     <string name="voices_empty_title">No voices yet</string>
-    <string name="voices_empty_body">Voices come in language packs. Download a pack ZIP, then import it here — everything stays on your device.</string>
+    <string name="voices_empty_body">Voices come in language packs. Download one with a tap — it installs by itself, and speech runs fully on your device.</string>
     <string name="clone_voice_title">Clone a voice</string>
     <string name="clone_voice_body">From a short, clean WAV recording</string>
     <string name="clone_voice_consent">Only with the speaker’s permission.</string>
@@ -165,7 +165,25 @@
     </plurals>
     <string name="recent_just_now">Just now</string>
     <string name="action_download_fast_pack">Download English voice (%1$s)</string>
-    <string name="status_downloading_pack">Downloading English voice… %1$d%%</string>
-    <string name="status_download_done">English voice installed and ready</string>
     <string name="status_download_failed">Download failed: %1$s</string>
+    <string name="hub_title">Model hub</string>
+    <string name="hub_subtitle">Download voices straight to your phone. Every file is verified before it’s installed.</string>
+    <string name="hub_download">Download</string>
+    <string name="hub_installed">Installed</string>
+    <string name="hub_button_progress">Downloading… %1$d%%</string>
+    <string name="hub_queued">Waiting…</string>
+    <string name="hub_progress">%1$d%% · %2$s of %3$s</string>
+    <string name="hub_installing">Verifying and installing…</string>
+    <string name="hub_cancel">Cancel download</string>
+    <string name="hub_recommended">Recommended</string>
+    <string name="hub_tier_experimental">Beta</string>
+    <string name="hub_meta">%1$s · %2$s</string>
+    <string name="hub_note_fast">Quick and quality-checked</string>
+    <string name="hub_note_hq">Original full-precision model</string>
+    <string name="hub_note_experimental">24-layer model, needs lots of memory</string>
+    <string name="hub_no_space">Not enough free space (needs %1$s)</string>
+    <string name="hub_done">%1$s voice installed and ready</string>
+    <string name="hub_mobile_data_title">Use mobile data?</string>
+    <string name="hub_mobile_data_message">This download is %1$s. You’re not on Wi-Fi, so it may use your mobile data.</string>
+    <string name="status_download_cancelled">Download cancelled</string>
 </resources>

@@ -92,43 +92,54 @@ class MainActivity : AppCompatActivity() {
         refreshData()
         val initialTab = state?.getInt(STATE_TAB) ?: tabFromIntent(intent)
         showTab(initialTab, animate = false)
-        PackDownloader.addListener(downloadListener)
+        ModelHub.addListener(hubListener)
         // First launch with nothing installed: fetch the recommended English pack
         // automatically when that can't cost mobile data; otherwise one tap on Voices.
-        if (state == null && packs.isEmpty() && PackDownloader.state == PackDownloader.State.Idle &&
-            PackDownloader.isUnmetered(this)
-        ) {
-            downloadFastPack()
+        if (state == null && packs.isEmpty() && !ModelHub.isBusy && ModelHub.isUnmetered(this)) {
+            ModelHub.find(this, ModelHub.RECOMMENDED_ID)?.let { ModelHub.enqueue(this, it) }
+            showTab(TAB_VOICES, animate = false)
         }
     }
 
-    private val downloadListener: (PackDownloader.State) -> Unit = { s ->
-        if (uiCreated) when (s) {
-            is PackDownloader.State.Running -> voicesTab.setBusy(
-                getString(R.string.status_downloading_pack, (100 * s.downloaded / s.total).toInt())
+    private val hubListener: (ModelHub.Event) -> Unit = { event ->
+        if (uiCreated) when (event) {
+            is ModelHub.Event.Progress -> voicesTab.updateHubItem(event.id)
+            is ModelHub.Event.Installed -> refreshData(
+                getString(R.string.hub_done, UiKit.languageLabel(event.pack))
             )
-            PackDownloader.State.Installing -> voicesTab.setBusy(getString(R.string.status_importing_pack))
-            PackDownloader.State.Done -> {
-                voicesTab.setBusy(null)
-                refreshData(getString(R.string.status_download_done))
+            is ModelHub.Event.Failed -> {
+                voicesTab.updateHubItem(event.id)
+                showMessage(getString(R.string.status_download_failed, event.message))
             }
-            is PackDownloader.State.Failed -> {
-                voicesTab.setBusy(null)
-                showMessage(getString(R.string.status_download_failed, s.message))
+            is ModelHub.Event.Cancelled -> {
+                voicesTab.updateHubItem(event.id)
+                showMessage(getString(R.string.status_download_cancelled))
             }
-            PackDownloader.State.Idle -> Unit
         }
     }
 
+    /** Recommended English pack, from the empty state. */
     internal fun downloadFastPack() {
-        if (PackDownloader.isBusy) return
-        showTab(TAB_VOICES, animate = true)
-        PackDownloader.start(this)
+        ModelHub.find(this, ModelHub.RECOMMENDED_ID)?.let { downloadHubItem(it) }
     }
 
-    /** "Get packs": download the recommended pack in-app, or browse all packs once it's installed. */
+    internal fun downloadHubItem(item: ModelHub.Item) {
+        val go = {
+            ModelHub.enqueue(this, item)
+            showTab(TAB_VOICES, animate = true)
+        }
+        if (ModelHub.isUnmetered(this)) go() else MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.hub_mobile_data_title)
+            .setMessage(getString(R.string.hub_mobile_data_message, UiKit.formatBytes(this, item.size)))
+            .setPositiveButton(R.string.hub_download) { _, _ -> go() }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /** "Get packs" anywhere in the app: jump to the model hub. */
     internal fun getPacks() {
-        if (PackDownloader.isInstalled(this)) openPackDownloads() else downloadFastPack()
+        showTab(TAB_VOICES, animate = true)
+        voicesTab.scrollToHub()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -161,7 +172,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        PackDownloader.removeListener(downloadListener)
+        ModelHub.removeListener(hubListener)
         if (uiCreated) preview.release()
         super.onDestroy()
     }

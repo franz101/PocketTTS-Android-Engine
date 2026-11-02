@@ -64,7 +64,7 @@ internal class EngineTab(private val activity: MainActivity, private val root: V
             activity.openUrl(MainActivity.REPOSITORY_URL, R.string.error_open_repository)
         }
         bindRow(R.id.row_packs, R.drawable.ic_download, R.string.download_language_packs,
-            activity.getString(R.string.download_packs_subtitle), external = true) { activity.openPackDownloads() }
+            activity.getString(R.string.download_packs_subtitle), external = false) { activity.getPacks() }
         root.findViewById<TextView>(R.id.engine_footer).text =
             activity.getString(R.string.engine_footer, BuildConfig.VERSION_NAME)
         packGroup.setOnCheckedStateChangeListener { _, ids ->

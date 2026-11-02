@@ -125,7 +125,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="22dp"
                     android:text="@string/download_language_packs"
-                    app:icon="@drawable/ic_open_in_new"
+                    app:icon="@drawable/ic_download"
                     app:iconGravity="textStart" />
 
                 <com.google.android.material.button.MaterialButton
@@ -252,6 +252,35 @@
                 android:text="@string/action_download_packs"
                 app:icon="@drawable/ic_open_in_new"
                 app:iconGravity="end" />
+        </LinearLayout>
+
+        <!-- Model hub: downloadable packs, installed in-app with live progress. -->
+        <LinearLayout
+            android:id="@+id/hub_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/Text.PocketTts.Section"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/hub_title" />
+
+            <TextView
+                style="@style/Text.PocketTts.Caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/hub_subtitle" />
+
+            <LinearLayout
+                android:id="@+id/hub_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="vertical" />
         </LinearLayout>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

@@ -46,16 +46,28 @@ internal class VoicesTab(private val activity: MainActivity, private val rootVie
     init {
         cloneCard.setOnClickListener { activity.startVoiceImport() }
         root.findViewById<View>(R.id.import_pack_button).setOnClickListener { activity.confirmModelPackImport() }
-        root.findViewById<View>(R.id.download_packs_button).setOnClickListener { activity.getPacks() }
+        root.findViewById<View>(R.id.download_packs_button).visibility = View.GONE
         root.findViewById<View>(R.id.empty_import_pack).setOnClickListener { activity.confirmModelPackImport() }
         root.findViewById<View>(R.id.empty_get_packs).setOnClickListener { activity.downloadFastPack() }
     }
 
+    /** The empty state's main button mirrors the recommended pack's download. */
+    private fun refreshEmptyButton() {
+        val button = rootView.findViewById<TextView>(R.id.empty_get_packs)
+        val item = ModelHub.find(activity, ModelHub.RECOMMENDED_ID) ?: return
+        val state = ModelHub.state(item.id)
+        button.isEnabled = state == null
+        button.text = when (state) {
+            null -> activity.getString(R.string.action_download_fast_pack, UiKit.formatBytes(activity, item.size))
+            ModelHub.State.Queued -> activity.getString(R.string.hub_queued)
+            ModelHub.State.Installing -> activity.getString(R.string.hub_installing)
+            is ModelHub.State.Downloading ->
+                activity.getString(R.string.hub_button_progress, (100 * state.done / state.total).toInt())
+        }
+    }
+
     fun render(packs: List<ModelPack>) {
-        val fastLabel = activity.getString(R.string.action_download_fast_pack, "103 MB")
-        rootView.findViewById<TextView>(R.id.empty_get_packs).text = fastLabel
-        rootView.findViewById<TextView>(R.id.download_packs_button).text =
-            if (PackDownloader.isInstalled(activity)) activity.getString(R.string.action_download_packs) else fastLabel
+        refreshEmptyButton()
         val inflater = LayoutInflater.from(activity)
         val entries = packs.flatMap { pack -> pack.voices.map { VoiceEntry(pack, it) } }
         cards.clear()
@@ -80,6 +92,112 @@ internal class VoicesTab(private val activity: MainActivity, private val rootVie
         }
         updateSelection(animate = false)
         renderPacks(packs)
+        renderHub()
+    }
+
+    // ---- Model hub --------------------------------------------------------
+    private val hubList: LinearLayout = rootView.findViewById(R.id.hub_list)
+    private val hubSection: View = rootView.findViewById(R.id.hub_section)
+    private val hubViews = HashMap<String, View>()
+
+    private fun renderHub() {
+        hubList.removeAllViews()
+        hubViews.clear()
+        val inflater = LayoutInflater.from(activity)
+        val items = ModelHub.catalog(activity).sortedWith(
+            compareByDescending<ModelHub.Item> { it.recommended }
+                .thenBy { UiKit.languageName(it.locale) }
+                .thenBy { it.tier.ordinal }
+        )
+        items.forEach { item ->
+            val view = inflater.inflate(R.layout.item_hub, hubList, false)
+            view.findViewById<TextView>(R.id.hub_code).text = item.locale.language.uppercase(java.util.Locale.ROOT)
+            view.findViewById<TextView>(R.id.hub_name).text = UiKit.languageName(item.locale)
+            view.findViewById<TextView>(R.id.hub_badge).text = activity.getString(
+                when (item.tier) {
+                    ModelHub.Tier.FAST -> R.string.badge_fast
+                    ModelHub.Tier.HQ -> R.string.badge_hq
+                    ModelHub.Tier.EXPERIMENTAL -> R.string.hub_tier_experimental
+                }
+            )
+            view.findViewById<TextView>(R.id.hub_meta).text = activity.getString(
+                R.string.hub_meta,
+                UiKit.formatBytes(activity, item.size),
+                activity.getString(
+                    when (item.tier) {
+                        ModelHub.Tier.FAST -> R.string.hub_note_fast
+                        ModelHub.Tier.HQ -> R.string.hub_note_hq
+                        ModelHub.Tier.EXPERIMENTAL -> R.string.hub_note_experimental
+                    }
+                )
+            )
+            view.findViewById<View>(R.id.hub_action).setOnClickListener { activity.downloadHubItem(item) }
+            view.findViewById<View>(R.id.hub_cancel).setOnClickListener { ModelHub.cancel(item.id) }
+            hubList.addView(view)
+            hubViews[item.id] = view
+            updateHubItem(item.id)
+        }
+    }
+
+    fun updateHubItem(id: String) {
+        if (id == ModelHub.RECOMMENDED_ID) refreshEmptyButton()
+        val view = hubViews[id] ?: return
+        val item = ModelHub.find(activity, id) ?: return
+        val action = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.hub_action)
+        val group = view.findViewById<View>(R.id.hub_progress_group)
+        val bar = view.findViewById<com.google.android.material.progressindicator.LinearProgressIndicator>(R.id.hub_progress)
+        val status = view.findViewById<TextView>(R.id.hub_status)
+        val cancel = view.findViewById<View>(R.id.hub_cancel)
+        val installed = ModelHub.isInstalled(activity, id)
+        view.findViewById<View>(R.id.hub_recommended).visibility =
+            if (item.recommended && !installed) View.VISIBLE else View.GONE
+        when (val state = ModelHub.state(id)) {
+            null -> {
+                group.visibility = View.GONE
+                action.visibility = View.VISIBLE
+                action.isEnabled = !installed
+                action.text = activity.getString(if (installed) R.string.hub_installed else R.string.hub_download)
+                action.setIconResource(if (installed) R.drawable.ic_check else R.drawable.ic_download)
+            }
+            else -> {
+                action.visibility = View.GONE
+                if (group.visibility != View.VISIBLE) UiKit.fadeIn(group)
+                cancel.visibility = if (state is ModelHub.State.Installing) View.INVISIBLE else View.VISIBLE
+                when (state) {
+                    ModelHub.State.Queued -> {
+                        bar.isIndeterminate = false
+                        bar.setProgressCompat(0, false)
+                        status.text = activity.getString(R.string.hub_queued)
+                    }
+                    is ModelHub.State.Downloading -> {
+                        bar.isIndeterminate = false
+                        bar.setProgressCompat((1000 * state.done / state.total).toInt(), true)
+                        status.text = activity.getString(
+                            R.string.hub_progress,
+                            (100 * state.done / state.total).toInt(),
+                            UiKit.formatBytes(activity, state.done),
+                            UiKit.formatBytes(activity, state.total)
+                        )
+                    }
+                    ModelHub.State.Installing -> {
+                        if (!bar.isIndeterminate) {
+                            bar.visibility = View.INVISIBLE
+                            bar.isIndeterminate = true
+                            bar.visibility = View.VISIBLE
+                        }
+                        status.text = activity.getString(R.string.hub_installing)
+                    }
+                }
+            }
+        }
+        view.contentDescription = listOf(
+            view.findViewById<TextView>(R.id.hub_name).text, status.text.takeIf { group.visibility == View.VISIBLE }
+        ).filterNotNull().joinToString(", ")
+    }
+
+    fun scrollToHub() {
+        val scroll = rootView as? androidx.core.widget.NestedScrollView ?: return
+        scroll.post { scroll.smoothScrollTo(0, hubSection.top - UiKit.dp(activity, 12f)) }
     }
 
     private fun bindCard(view: MaterialCardView, entry: VoiceEntry) {

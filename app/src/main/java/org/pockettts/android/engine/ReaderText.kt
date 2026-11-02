@@ -76,7 +76,7 @@ internal object ReaderText {
      * every line break starts a new paragraph.
      */
     fun paragraphs(text: String): List<String> {
-        val normalized = text.replace("\r\n", "\n").replace('\r', '\n').replace(" ", " ").removePrefix("﻿")
+        val normalized = text.replace("\r\n", "\n").replace('\r', '\n').replace("\u00A0", " ").removePrefix("\uFEFF")
         val chunks = normalized.split(Regex("\n[ \t]*\n+"))
         val lines = normalized.split('\n').map { it.trim() }.filter { it.isNotEmpty() }
         val wrapped = chunks.size > 1 && lines.size >= chunks.size * 2 &&
