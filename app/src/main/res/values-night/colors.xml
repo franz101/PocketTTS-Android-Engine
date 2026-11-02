@@ -1,0 +1,34 @@
+<resources>
+    <color name="pt_primary">#C6BFFF</color>
+    <color name="pt_on_primary">#2C1D9A</color>
+    <color name="pt_primary_container">#4335B0</color>
+    <color name="pt_on_primary_container">#E4DFFF</color>
+    <color name="pt_secondary">#C7C3DC</color>
+    <color name="pt_on_secondary">#302E41</color>
+    <color name="pt_secondary_container">#464559</color>
+    <color name="pt_on_secondary_container">#E3E0F9</color>
+    <color name="pt_tertiary">#FFB68D</color>
+    <color name="pt_on_tertiary">#532200</color>
+    <color name="pt_tertiary_container">#723609</color>
+    <color name="pt_on_tertiary_container">#FFDBC9</color>
+    <color name="pt_error">#FFB4AB</color>
+    <color name="pt_on_error">#690005</color>
+    <color name="pt_error_container">#93000A</color>
+    <color name="pt_on_error_container">#FFDAD6</color>
+    <color name="pt_surface">#131218</color>
+    <color name="pt_on_surface">#E5E1E9</color>
+    <color name="pt_surface_variant">#48454E</color>
+    <color name="pt_on_surface_variant">#C9C5D0</color>
+    <color name="pt_outline">#938F99</color>
+    <color name="pt_outline_variant">#48454E</color>
+    <color name="pt_surface_container_lowest">#0E0D13</color>
+    <color name="pt_surface_container_low">#1C1B20</color>
+    <color name="pt_surface_container">#201F25</color>
+    <color name="pt_surface_container_high">#2A292F</color>
+    <color name="pt_surface_container_highest">#35343A</color>
+    <color name="pt_surface_dim">#131218</color>
+    <color name="pt_surface_bright">#3A383F</color>
+    <color name="pt_inverse_surface">#E5E1E9</color>
+    <color name="pt_inverse_on_surface">#313036</color>
+    <color name="pt_inverse_primary">#5B4FC9</color>
+</resources>

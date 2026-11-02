@@ -1,52 +1,75 @@
 package org.pockettts.android.engine
 
-import android.app.Activity
-import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.content.res.Configuration
-import android.graphics.Color
-import android.graphics.Typeface
-import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.View
-import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.EditText
+import android.widget.Filter
 import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.ScrollView
-import android.widget.Spinner
 import android.widget.TextView
-import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
+import androidx.annotation.StringRes
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
+import com.google.android.material.chip.Chip
+import com.google.android.material.color.DynamicColors
+import com.google.android.material.color.MaterialColors
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.progressindicator.LinearProgressIndicator
+import com.google.android.material.slider.Slider
+import com.google.android.material.slider.TickVisibilityMode
+import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
+import com.google.android.material.textfield.TextInputLayout
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.Locale
 import kotlin.concurrent.thread
+import kotlin.math.roundToInt
 
-class MainActivity : Activity() {
-    private lateinit var packSpinner: Spinner
-    private lateinit var voiceSpinner: Spinner
-    private lateinit var importVoiceButton: Button
-    private lateinit var deletePackButton: Button
-    private lateinit var temperatureInput: EditText
-    private lateinit var lsdInput: EditText
-    private lateinit var threadsInput: EditText
-    private lateinit var sentencePauseInput: EditText
-    private lateinit var maxTextTokensInput: EditText
+class MainActivity : AppCompatActivity() {
+    private lateinit var root: View
+    private lateinit var packLayout: TextInputLayout
+    private lateinit var packDropdown: MaterialAutoCompleteTextView
+    private lateinit var voiceLayout: TextInputLayout
+    private lateinit var voiceDropdown: MaterialAutoCompleteTextView
+    private lateinit var importVoiceButton: MaterialButton
+    private lateinit var deletePackButton: MaterialButton
+    private lateinit var temperatureInput: ParamControl
+    private lateinit var lsdInput: ParamControl
+    private lateinit var threadsInput: ParamControl
+    private lateinit var sentencePauseInput: ParamControl
+    private lateinit var maxTextTokensInput: ParamControl
+    private lateinit var statusCard: MaterialCardView
+    private lateinit var statusIcon: ImageView
+    private lateinit var statusTitle: TextView
+    private lateinit var statusBody: TextView
+    private lateinit var packChip: Chip
+    private lateinit var voiceChip: Chip
+    private lateinit var statusProgress: LinearProgressIndicator
     private lateinit var statusView: TextView
+    private lateinit var setDefaultButton: MaterialButton
+    private var uiCreated = false
     private var packs: List<ModelPack> = emptyList()
     private var visibleVoices: List<PackVoice> = emptyList()
+    private var selectedVoiceIndex = -1
     private var currentPack: ModelPack? = null
 
     override fun onCreate(state: Bundle?) {
+        enableEdgeToEdge()
+        DynamicColors.applyToActivityIfAvailable(this)
         super.onCreate(state)
         ModelPackRepository.migrateLegacy(this)
         ModelPackRepository.applySystemDefaultSelection(this)
@@ -86,151 +109,122 @@ class MainActivity : Activity() {
         refreshData()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // The user may have changed the preferred engine in Android's settings meanwhile.
+        if (uiCreated) updateEngineStatus()
+    }
+
     private fun createUi() {
-        val content = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(20), dp(20), dp(20), dp(32))
-        }
-        ViewCompat.setOnApplyWindowInsetsListener(content) { view, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            view.setPadding(
-                dp(20),
-                systemBars.top + dp(20),
-                dp(20),
-                systemBars.bottom + dp(32)
-            )
+        setContentView(R.layout.activity_main)
+        root = findViewById(R.id.main_root)
+        val scroll = findViewById<View>(R.id.main_scroll)
+        ViewCompat.setOnApplyWindowInsetsListener(scroll) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            view.setPadding(bars.left, bars.top + dp(16), bars.right, bars.bottom + dp(32))
             insets
         }
-        content.addView(ImageView(this).apply {
-            setImageResource(R.drawable.pocket_voice_hero)
-            contentDescription = getString(R.string.hero_content_description)
-            scaleType = ImageView.ScaleType.CENTER_CROP
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                cornerRadius = dp(24).toFloat()
-                setColor(Color.rgb(9, 10, 31))
+
+        statusCard = findViewById(R.id.status_card)
+        statusIcon = findViewById(R.id.status_icon)
+        statusTitle = findViewById(R.id.status_title)
+        statusBody = findViewById(R.id.status_body)
+        packChip = findViewById(R.id.active_pack_chip)
+        voiceChip = findViewById(R.id.active_voice_chip)
+        statusProgress = findViewById(R.id.status_progress)
+        statusView = findViewById(R.id.status_message)
+        setDefaultButton = findViewById(R.id.set_default_button)
+        setDefaultButton.setOnClickListener { openTtsSettings() }
+
+        packLayout = findViewById(R.id.pack_layout)
+        packDropdown = findViewById(R.id.pack_dropdown)
+        voiceLayout = findViewById(R.id.voice_layout)
+        voiceDropdown = findViewById(R.id.voice_dropdown)
+        importVoiceButton = findViewById(R.id.import_voice_button)
+        deletePackButton = findViewById(R.id.delete_pack_button)
+
+        findViewById<View>(R.id.download_packs_button).setOnClickListener {
+            runCatching {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("$REPOSITORY_URL/releases/latest")))
+            }.onFailure {
+                showStatus(getString(R.string.error_open_downloads), notify = true)
             }
-            clipToOutline = true
-        }, matchWidth(height = 190, bottom = 20))
-        content.addView(TextView(this).apply {
-            text = getString(R.string.app_name)
-            textSize = 26f
-            setTypeface(typeface, Typeface.BOLD)
-        })
-        content.addView(TextView(this).apply {
-            text = getString(R.string.app_description)
-            textSize = 15f
-            setPadding(0, dp(8), 0, dp(20))
-        })
+        }
+        findViewById<View>(R.id.import_pack_button).setOnClickListener { confirmModelPackImport() }
+        deletePackButton.setOnClickListener { confirmDeletePack() }
+        importVoiceButton.setOnClickListener { openDocument(REQUEST_VOICE, "audio/wav") }
 
-        content.addLabel(getString(R.string.language_pack))
-        content.addView(TextView(this).apply {
-            text = getString(R.string.language_pack_help)
-            textSize = 14f
-            setPadding(0, dp(8), 0, dp(8))
-        }, matchWidth())
-        content.addView(Button(this).apply {
-            text = getString(R.string.download_language_packs)
-            setOnClickListener {
-                runCatching {
-                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("$REPOSITORY_URL/releases/latest")))
-                }.onFailure {
-                    Toast.makeText(this@MainActivity, R.string.error_open_downloads, Toast.LENGTH_LONG).show()
-                }
+        temperatureInput = ParamControl(R.id.param_temperature, R.string.param_temperature,
+            R.string.param_temperature_help, R.string.temperature_label, 0f, 2f, 0.01f) {
+            String.format(Locale.getDefault(), "%.2f", it)
+        }
+        lsdInput = ParamControl(R.id.param_lsd, R.string.param_lsd_steps,
+            R.string.param_lsd_steps_help, R.string.lsd_steps_label, 1f, 8f, 1f) { it.roundToInt().toString() }
+        threadsInput = ParamControl(R.id.param_threads, R.string.param_cpu_threads,
+            R.string.param_cpu_threads_help, R.string.cpu_threads_label, 1f, 8f, 1f) { it.roundToInt().toString() }
+        sentencePauseInput = ParamControl(R.id.param_pause, R.string.param_sentence_pause,
+            R.string.param_sentence_pause_help, R.string.sentence_pause_label, 0f, 2000f, 1f) {
+            getString(R.string.value_milliseconds, it.roundToInt())
+        }
+        maxTextTokensInput = ParamControl(R.id.param_tokens, R.string.param_max_text_tokens,
+            R.string.param_max_text_tokens_help, R.string.max_text_tokens_label, 10f, 200f, 1f) {
+            it.roundToInt().toString()
+        }
+
+        findViewById<View>(R.id.save_button).setOnClickListener { saveSettings() }
+        findViewById<View>(R.id.read_aloud_button).setOnClickListener {
+            startActivity(Intent(this@MainActivity, ReadAloudActivity::class.java))
+        }
+        findViewById<View>(R.id.open_tts_button).setOnClickListener { openTtsSettings() }
+        findViewById<View>(R.id.about_button).setOnClickListener { showAbout() }
+
+        packDropdown.setOnItemClickListener { _, _, position, _ ->
+            packs.getOrNull(position)?.let {
+                ModelPackRepository.selectPack(this@MainActivity, it.id)
+                showPack(it)
             }
-        }, matchWidth())
-        packSpinner = Spinner(this)
-        content.addView(packSpinner, matchWidth())
-        content.addView(Button(this).apply {
-            text = getString(R.string.import_language_pack)
-            setOnClickListener { confirmModelPackImport() }
-        }, matchWidth())
-        deletePackButton = Button(this).apply {
-            text = getString(R.string.delete_language_pack)
-            setOnClickListener { confirmDeletePack() }
         }
-        content.addView(deletePackButton, matchWidth())
-
-        content.addLabel(getString(R.string.voice))
-        voiceSpinner = Spinner(this)
-        content.addView(voiceSpinner, matchWidth())
-        importVoiceButton = Button(this).apply {
-            text = getString(R.string.import_reference_voice)
-            setOnClickListener { openDocument(REQUEST_VOICE, "audio/wav") }
-        }
-        content.addView(importVoiceButton, matchWidth())
-
-        content.addLabel(getString(R.string.generation_parameters))
-        temperatureInput = addNumberField(content, getString(R.string.temperature_label), decimal = true)
-        lsdInput = addNumberField(content, getString(R.string.lsd_steps_label))
-        threadsInput = addNumberField(content, getString(R.string.cpu_threads_label))
-        sentencePauseInput = addNumberField(content, getString(R.string.sentence_pause_label))
-        maxTextTokensInput = addNumberField(content, getString(R.string.max_text_tokens_label))
-        content.addView(Button(this).apply {
-            text = getString(R.string.save_selection)
-            setOnClickListener { saveSettings() }
-        }, matchWidth())
-
-        content.addView(Button(this).apply {
-            text = getString(R.string.read_aloud)
-            setOnClickListener { startActivity(Intent(this@MainActivity, ReadAloudActivity::class.java)) }
-        }, matchWidth(top = 12))
-        content.addView(Button(this).apply {
-            text = getString(R.string.open_android_tts)
-            setOnClickListener { openTtsSettings() }
-        }, matchWidth(top = 12))
-        content.addView(Button(this).apply {
-            text = getString(R.string.about_app)
-            setOnClickListener { showAbout() }
-        }, matchWidth())
-        statusView = TextView(this).apply {
-            textSize = 14f
-            setPadding(0, dp(20), 0, 0)
-        }
-        content.addView(statusView, matchWidth())
-        setContentView(ScrollView(this).apply { addView(content) })
-
-        packSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                packs.getOrNull(position)?.let {
-                    ModelPackRepository.selectPack(this@MainActivity, it.id)
-                    showPack(it)
-                }
+        voiceDropdown.setOnItemClickListener { _, _, position, _ ->
+            val pack = currentPack ?: return@setOnItemClickListener
+            visibleVoices.getOrNull(position)?.let {
+                selectedVoiceIndex = position
+                ModelPackRepository.selectVoice(this@MainActivity, pack.id, it.id)
+                updateEngineStatus()
             }
-            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
         }
-        voiceSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val pack = currentPack ?: return
-                visibleVoices.getOrNull(position)?.let { ModelPackRepository.selectVoice(this@MainActivity, pack.id, it.id) }
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
-        }
+        uiCreated = true
     }
 
     private fun refreshData(message: String? = null) {
         packs = ModelPackRepository.list(this)
         val selected = ModelPackRepository.selectedPack(this)
-        packSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
-            if (packs.isEmpty()) listOf(getString(R.string.no_language_pack)) else packs.map { it.displayName })
         val index = packs.indexOfFirst { it.id == selected?.id }.coerceAtLeast(0)
-        if (packs.isNotEmpty()) packSpinner.setSelection(index)
-        showPack(packs.getOrNull(index))
-        statusView.text = message ?: if (packs.isEmpty()) {
+        packDropdown.setAdapter(DropdownAdapter(this, packs.map { it.displayName }))
+        packLayout.isEnabled = packs.isNotEmpty()
+        val pack = packs.getOrNull(index)
+        packDropdown.setText(pack?.displayName ?: getString(R.string.no_language_pack), false)
+        // Persist the effective selection, as the former spinner did on its initial selection.
+        pack?.let { ModelPackRepository.selectPack(this, it.id) }
+        showPack(pack)
+        val status = message ?: if (packs.isEmpty()) {
             getString(R.string.status_no_model)
         } else {
             getString(R.string.status_installed, packs.size)
         }
+        showStatus(status, notify = message != null)
     }
 
     private fun showPack(pack: ModelPack?) {
         currentPack = pack
         visibleVoices = pack?.voices.orEmpty()
-        voiceSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item,
-            if (visibleVoices.isEmpty()) listOf(getString(R.string.no_voice)) else visibleVoices.map { it.displayName })
+        voiceDropdown.setAdapter(DropdownAdapter(this, visibleVoices.map { it.displayName }))
         val selectedVoice = pack?.let { ModelPackRepository.selectedVoiceId(this, it) }
         val voiceIndex = visibleVoices.indexOfFirst { it.id == selectedVoice }.coerceAtLeast(0)
-        if (visibleVoices.isNotEmpty()) voiceSpinner.setSelection(voiceIndex)
+        val voice = visibleVoices.getOrNull(voiceIndex)
+        selectedVoiceIndex = if (voice != null) voiceIndex else -1
+        voiceDropdown.setText(voice?.displayName ?: getString(R.string.no_voice), false)
+        voiceLayout.isEnabled = visibleVoices.isNotEmpty()
+        if (pack != null && voice != null) ModelPackRepository.selectVoice(this, pack.id, voice.id)
         importVoiceButton.isEnabled = pack != null
         deletePackButton.isEnabled = pack != null
         temperatureInput.isEnabled = pack != null
@@ -238,16 +232,62 @@ class MainActivity : Activity() {
         threadsInput.isEnabled = pack != null
         sentencePauseInput.isEnabled = pack != null
         maxTextTokensInput.isEnabled = pack != null
-        temperatureInput.setText(pack?.let { ModelPackRepository.temperature(this, it).toString() }.orEmpty())
-        lsdInput.setText(pack?.let { ModelPackRepository.lsdSteps(this, it).toString() }.orEmpty())
-        threadsInput.setText(pack?.let { ModelPackRepository.threads(this, it).toString() }.orEmpty())
-        sentencePauseInput.setText(pack?.let { ModelPackRepository.sentencePauseMs(this, it).toString() }.orEmpty())
-        maxTextTokensInput.setText(pack?.let { ModelPackRepository.maxTextTokens(this, it).toString() }.orEmpty())
+        temperatureInput.setValue(pack?.let { ModelPackRepository.temperature(this, it) })
+        lsdInput.setValue(pack?.let { ModelPackRepository.lsdSteps(this, it).toFloat() })
+        threadsInput.setValue(pack?.let { ModelPackRepository.threads(this, it).toFloat() })
+        sentencePauseInput.setValue(pack?.let { ModelPackRepository.sentencePauseMs(this, it).toFloat() })
+        maxTextTokensInput.setValue(pack?.let { ModelPackRepository.maxTextTokens(this, it).toFloat() })
+        updateEngineStatus()
+    }
+
+    /** Updates the banner: whether Pocket TTS is Android's default engine and what is active. */
+    private fun updateEngineStatus() {
+        val defaultEngine = runCatching {
+            Settings.Secure.getString(contentResolver, Settings.Secure.TTS_DEFAULT_SYNTH)
+        }.getOrNull()
+        val isDefault = defaultEngine == packageName
+        val containerAttr = if (isDefault) {
+            com.google.android.material.R.attr.colorPrimaryContainer
+        } else com.google.android.material.R.attr.colorTertiaryContainer
+        val onContainerAttr = if (isDefault) {
+            com.google.android.material.R.attr.colorOnPrimaryContainer
+        } else com.google.android.material.R.attr.colorOnTertiaryContainer
+        val container = MaterialColors.getColor(statusCard, containerAttr)
+        val onContainer = MaterialColors.getColor(statusCard, onContainerAttr)
+        statusCard.setCardBackgroundColor(container)
+        statusIcon.setImageResource(if (isDefault) R.drawable.ic_check_circle else R.drawable.ic_warning)
+        statusIcon.imageTintList = ColorStateList.valueOf(onContainer)
+        statusTitle.setText(if (isDefault) R.string.engine_default_title else R.string.engine_not_default_title)
+        statusBody.setText(if (isDefault) R.string.engine_default_body else R.string.engine_not_default_body)
+        statusTitle.setTextColor(onContainer)
+        statusBody.setTextColor(onContainer)
+        statusView.setTextColor(onContainer)
+        setDefaultButton.visibility = if (isDefault) View.GONE else View.VISIBLE
+
+        val chipBackground = ColorStateList.valueOf(
+            MaterialColors.getColor(statusCard, com.google.android.material.R.attr.colorSurfaceContainerLowest)
+        )
+        listOf(packChip, voiceChip).forEach {
+            it.chipBackgroundColor = chipBackground
+            it.chipStrokeWidth = 0f
+        }
+        val pack = currentPack
+        packChip.text = pack?.displayName ?: getString(R.string.no_language_pack)
+        voiceChip.text = visibleVoices.getOrNull(selectedVoiceIndex)?.displayName ?: getString(R.string.no_voice)
+        voiceChip.visibility = if (pack != null) View.VISIBLE else View.GONE
+    }
+
+    /** Shows a persistent status line in the banner and, for results of user actions, a snackbar. */
+    private fun showStatus(message: String, busy: Boolean = false, notify: Boolean = false) {
+        statusView.text = message
+        statusProgress.visibility = if (busy) View.VISIBLE else View.GONE
+        if (notify) Snackbar.make(root, message, Snackbar.LENGTH_LONG).show()
     }
 
     private fun confirmDeletePack() {
         val pack = currentPack ?: return
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
+            .setIcon(R.drawable.ic_delete)
             .setTitle(R.string.delete_pack_title)
             .setMessage(getString(R.string.delete_pack_message, pack.displayName))
             .setNegativeButton(android.R.string.cancel, null)
@@ -256,7 +296,8 @@ class MainActivity : Activity() {
     }
 
     private fun confirmModelPackImport() {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
+            .setIcon(R.drawable.ic_warning)
             .setTitle(R.string.import_pack_warning_title)
             .setMessage(R.string.import_pack_warning_message)
             .setNegativeButton(android.R.string.cancel, null)
@@ -267,7 +308,7 @@ class MainActivity : Activity() {
     }
 
     private fun deletePack(pack: ModelPack) {
-        statusView.text = getString(R.string.status_deleting_pack, pack.displayName)
+        showStatus(getString(R.string.status_deleting_pack, pack.displayName), busy = true)
         deletePackButton.isEnabled = false
         thread(name = "pockettts-delete-pack") {
             runCatching { ModelPackRepository.deletePack(this, pack) }
@@ -278,7 +319,7 @@ class MainActivity : Activity() {
                     Log.e(TAG, "DELETE_PACK_FAILED pack=${pack.id}", error)
                     runOnUiThread {
                         deletePackButton.isEnabled = currentPack != null
-                        statusView.text = getString(R.string.status_delete_failed, error.message.orEmpty())
+                        showStatus(getString(R.string.status_delete_failed, error.message.orEmpty()), notify = true)
                     }
                 }
         }
@@ -286,19 +327,19 @@ class MainActivity : Activity() {
 
     private fun saveSettings() {
         val pack = currentPack ?: return
-        val temperature = temperatureInput.text.toString().replace(',', '.').toFloatOrNull()
-        val lsd = lsdInput.text.toString().toIntOrNull()
-        val threads = threadsInput.text.toString().toIntOrNull()
-        val sentencePauseMs = sentencePauseInput.text.toString().toIntOrNull()
-        val maxTextTokens = maxTextTokensInput.text.toString().toIntOrNull()
+        val temperature = (temperatureInput.value * 100f).roundToInt() / 100f
+        val lsd = lsdInput.value.roundToInt()
+        val threads = threadsInput.value.roundToInt()
+        val sentencePauseMs = sentencePauseInput.value.roundToInt()
+        val maxTextTokens = maxTextTokensInput.value.roundToInt()
         if (
-            temperature == null || temperature !in 0f..2f ||
-            lsd == null || lsd !in 1..8 ||
-            threads == null || threads !in 1..8 ||
-            sentencePauseMs == null || sentencePauseMs !in 0..2000 ||
-            maxTextTokens == null || maxTextTokens !in 10..200
+            temperature !in 0f..2f ||
+            lsd !in 1..8 ||
+            threads !in 1..8 ||
+            sentencePauseMs !in 0..2000 ||
+            maxTextTokens !in 10..200
         ) {
-            Toast.makeText(this, getString(R.string.invalid_parameters), Toast.LENGTH_LONG).show()
+            showStatus(getString(R.string.invalid_parameters), notify = true)
             return
         }
         ModelPackRepository.saveParameters(
@@ -310,10 +351,10 @@ class MainActivity : Activity() {
             sentencePauseMs,
             maxTextTokens
         )
-        visibleVoices.getOrNull(voiceSpinner.selectedItemPosition)?.let {
+        visibleVoices.getOrNull(selectedVoiceIndex)?.let {
             ModelPackRepository.selectVoice(this, pack.id, it.id)
         }
-        statusView.text = getString(R.string.status_saved, pack.displayName)
+        showStatus(getString(R.string.status_saved, pack.displayName), notify = true)
     }
 
     private fun openDocument(requestCode: Int, mime: String) {
@@ -335,14 +376,15 @@ class MainActivity : Activity() {
     }
 
     private fun showAbout() {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
+            .setIcon(R.drawable.ic_info)
             .setTitle(R.string.about_title)
             .setMessage(getString(R.string.about_message, BuildConfig.VERSION_NAME, REPOSITORY_URL))
             .setNegativeButton(android.R.string.ok, null)
             .setPositiveButton(R.string.open_repository) { _, _ ->
                 runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(REPOSITORY_URL))) }
                     .onFailure {
-                        Toast.makeText(this, getString(R.string.error_open_repository), Toast.LENGTH_LONG).show()
+                        showStatus(getString(R.string.error_open_repository), notify = true)
                     }
             }
             .show()
@@ -354,12 +396,15 @@ class MainActivity : Activity() {
         val uri = data?.data ?: return
         if (resultCode != RESULT_OK) return
         if (data.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION == 0) {
-            statusView.text = getString(R.string.error_untrusted_document)
+            showStatus(getString(R.string.error_untrusted_document), notify = true)
             return
         }
-        statusView.text = if (requestCode == REQUEST_MODEL_PACK) {
-            getString(R.string.status_importing_pack)
-        } else getString(R.string.status_importing_voice)
+        showStatus(
+            if (requestCode == REQUEST_MODEL_PACK) {
+                getString(R.string.status_importing_pack)
+            } else getString(R.string.status_importing_voice),
+            busy = true
+        )
         thread(name = "pockettts-import") {
             runCatching {
                 when (requestCode) {
@@ -373,18 +418,15 @@ class MainActivity : Activity() {
             }.onSuccess { name -> runOnUiThread { refreshData(getString(R.string.status_import_success, name)) } }
                 .onFailure { error ->
                     Log.e(TAG, "IMPORT_FAILED", error)
-                    runOnUiThread { statusView.text = getString(R.string.status_import_failed, error.message.orEmpty()) }
+                    runOnUiThread {
+                        showStatus(getString(R.string.status_import_failed, error.message.orEmpty()), notify = true)
+                    }
                 }
         }
     }
 
     private fun showSelfTest() {
-        val status = TextView(this).apply {
-            text = getString(R.string.self_test_running)
-            textSize = 18f
-            setPadding(dp(24), dp(36), dp(24), dp(24))
-        }
-        setContentView(status)
+        val status = selfTestView()
         thread(name = "pockettts-self-test") {
             runCatching { runSelfTest() }
                 .onSuccess { result ->
@@ -401,12 +443,7 @@ class MainActivity : Activity() {
     }
 
     private fun showMultiVoiceSelfTest() {
-        val status = TextView(this).apply {
-            text = getString(R.string.self_test_running)
-            textSize = 18f
-            setPadding(dp(24), dp(36), dp(24), dp(24))
-        }
-        setContentView(status)
+        val status = selfTestView()
         thread(name = "pockettts-multi-voice-test") {
             runCatching { runMultiVoiceSelfTest() }
                 .onSuccess { result ->
@@ -423,6 +460,22 @@ class MainActivity : Activity() {
                     runOnUiThread { status.text = getString(R.string.self_test_failed, error.message.orEmpty()) }
                 }
         }
+    }
+
+    /** Plain diagnostic screen used by the ADB-only self-test actions. */
+    private fun selfTestView(): TextView {
+        val status = TextView(this).apply {
+            text = getString(R.string.self_test_running)
+            setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_TitleMedium)
+            setTextColor(MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurface))
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(status) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(bars.left + dp(24), bars.top + dp(36), bars.right + dp(24), bars.bottom + dp(24))
+            insets
+        }
+        setContentView(status)
+        return status
     }
 
     private fun runMultiVoiceSelfTest(): MultiVoiceTestResult {
@@ -512,33 +565,72 @@ class MainActivity : Activity() {
         return SelfTestResult(output.absolutePath, samples, chunks, minimum, maximum)
     }
 
-    private fun LinearLayout.addLabel(label: String) {
-        addView(TextView(this@MainActivity).apply {
-            text = label
-            textSize = 18f
-            setTypeface(typeface, Typeface.BOLD)
-            setPadding(0, dp(18), 0, dp(6))
-        })
-    }
+    /** A labelled slider row (see `param_slider.xml`) for one generation parameter. */
+    private inner class ParamControl(
+        containerId: Int,
+        @StringRes label: Int,
+        @StringRes helper: Int,
+        @StringRes description: Int,
+        private val from: Float,
+        private val to: Float,
+        private val step: Float,
+        private val format: (Float) -> String
+    ) {
+        private val container: View = findViewById(containerId)
+        private val slider: Slider = container.findViewById(R.id.param_slider)
+        private val valueView: TextView = container.findViewById(R.id.param_value)
 
-    private fun addNumberField(parent: LinearLayout, hint: String, decimal: Boolean = false): EditText =
-        EditText(this).apply {
-            parent.addView(TextView(this@MainActivity).apply {
-                text = hint
-                textSize = 14f
-                setPadding(dp(4), dp(8), 0, 0)
-            }, matchWidth())
-            this.hint = hint
-            inputType = if (decimal) 0x00002002 else 0x00000002
-            parent.addView(this, matchWidth())
+        init {
+            container.findViewById<TextView>(R.id.param_label).setText(label)
+            container.findViewById<TextView>(R.id.param_helper).setText(helper)
+            slider.valueFrom = from
+            slider.valueTo = to
+            slider.stepSize = step
+            slider.value = from
+            slider.contentDescription = getString(description)
+            // The five included rows share child ids; values are always reloaded from preferences.
+            slider.isSaveEnabled = false
+            // Discrete ticks only where they stay readable (LSD steps, CPU threads).
+            slider.tickVisibilityMode = if ((to - from) / step <= 20f) {
+                TickVisibilityMode.TICK_VISIBILITY_AUTO_LIMIT
+            } else TickVisibilityMode.TICK_VISIBILITY_HIDDEN
+            slider.setLabelFormatter { format(it) }
+            slider.addOnChangeListener { _, value, _ -> valueView.text = format(value) }
+            valueView.text = EMPTY_VALUE
         }
 
-    private fun matchWidth(top: Int = 0, bottom: Int = 0, height: Int? = null) = LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.MATCH_PARENT,
-        height?.let(::dp) ?: LinearLayout.LayoutParams.WRAP_CONTENT
-    ).apply {
-        topMargin = dp(top)
-        bottomMargin = dp(bottom)
+        val value: Float get() = slider.value
+
+        var isEnabled: Boolean
+            get() = slider.isEnabled
+            set(enabled) {
+                slider.isEnabled = enabled
+                container.alpha = if (enabled) 1f else 0.6f
+            }
+
+        /** Shows [newValue] snapped to the slider grid, or an empty state when there is no pack. */
+        fun setValue(newValue: Float?) {
+            if (newValue == null) {
+                slider.value = from
+                valueView.text = EMPTY_VALUE
+                return
+            }
+            val steps = ((newValue.coerceIn(from, to) - from) / step).roundToInt()
+            slider.value = (from + steps * step).coerceIn(from, to)
+            valueView.text = format(slider.value)
+        }
+    }
+
+    /** Exposed-dropdown adapter that never filters, so every entry stays selectable. */
+    private class DropdownAdapter(context: Context, private val items: List<String>) :
+        ArrayAdapter<String>(context, R.layout.dropdown_item, items) {
+        override fun getFilter(): Filter = object : Filter() {
+            override fun performFiltering(constraint: CharSequence?) = FilterResults().apply {
+                values = items
+                count = items.size
+            }
+            override fun publishResults(constraint: CharSequence?, results: FilterResults?) = notifyDataSetChanged()
+        }
     }
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
@@ -561,5 +653,6 @@ class MainActivity : Activity() {
         const val REQUEST_MODEL_PACK = 1001
         const val REQUEST_VOICE = 1002
         const val SAMPLE_RATE = 24_000
+        const val EMPTY_VALUE = "—"
     }
 }

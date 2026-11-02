@@ -1,7 +1,89 @@
 <resources>
-    <style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar">
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:statusBarColor">#FAFAFA</item>
-        <item name="android:navigationBarColor">#FAFAFA</item>
+    <!-- Material 3 DayNight theme. On Android 12+ the activities additionally apply
+         dynamic color (Material You); these values are the fallback palette. -->
+    <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/pt_primary</item>
+        <item name="colorOnPrimary">@color/pt_on_primary</item>
+        <item name="colorPrimaryContainer">@color/pt_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/pt_on_primary_container</item>
+        <item name="colorSecondary">@color/pt_secondary</item>
+        <item name="colorOnSecondary">@color/pt_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/pt_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/pt_on_secondary_container</item>
+        <item name="colorTertiary">@color/pt_tertiary</item>
+        <item name="colorOnTertiary">@color/pt_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/pt_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/pt_on_tertiary_container</item>
+        <item name="colorError">@color/pt_error</item>
+        <item name="colorOnError">@color/pt_on_error</item>
+        <item name="colorErrorContainer">@color/pt_error_container</item>
+        <item name="colorOnErrorContainer">@color/pt_on_error_container</item>
+        <item name="android:colorBackground">@color/pt_surface</item>
+        <item name="colorOnBackground">@color/pt_on_surface</item>
+        <item name="colorSurface">@color/pt_surface</item>
+        <item name="colorOnSurface">@color/pt_on_surface</item>
+        <item name="colorSurfaceVariant">@color/pt_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/pt_on_surface_variant</item>
+        <item name="colorOutline">@color/pt_outline</item>
+        <item name="colorOutlineVariant">@color/pt_outline_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/pt_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/pt_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/pt_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/pt_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/pt_surface_container_highest</item>
+        <item name="colorSurfaceDim">@color/pt_surface_dim</item>
+        <item name="colorSurfaceBright">@color/pt_surface_bright</item>
+        <item name="colorSurfaceInverse">@color/pt_inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/pt_inverse_on_surface</item>
+        <item name="colorPrimaryInverse">@color/pt_inverse_primary</item>
+        <item name="materialCardViewStyle">@style/Widget.PocketTts.SectionCard</item>
+    </style>
+
+    <!-- Sections are tonal surface containers with large corners (Material 3 filled card). -->
+    <style name="Widget.PocketTts.SectionCard" parent="Widget.Material3.CardView.Filled">
+        <item name="cardBackgroundColor">?attr/colorSurfaceContainerLow</item>
+        <item name="shapeAppearance">?attr/shapeAppearanceCornerExtraLarge</item>
+        <item name="contentPadding">20dp</item>
+    </style>
+
+    <style name="Widget.PocketTts.SectionIcon" parent="">
+        <item name="android:layout_width">40dp</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:padding">9dp</item>
+        <item name="android:background">@drawable/bg_section_icon</item>
+        <item name="android:importantForAccessibility">no</item>
+        <item name="tint">?attr/colorOnSecondaryContainer</item>
+    </style>
+
+    <style name="Widget.PocketTts.SectionTitle" parent="">
+        <item name="android:textAppearance">?attr/textAppearanceTitleLarge</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:layout_marginStart">16dp</item>
+    </style>
+
+    <style name="Widget.PocketTts.Helper" parent="">
+        <item name="android:textAppearance">?attr/textAppearanceBodyMedium</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <style name="Widget.PocketTts.ParamLabel" parent="">
+        <item name="android:textAppearance">?attr/textAppearanceTitleSmall</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
+    <style name="Widget.PocketTts.ParamValue" parent="">
+        <item name="android:textAppearance">?attr/textAppearanceLabelLarge</item>
+        <item name="android:textColor">?attr/colorOnSecondaryContainer</item>
+        <item name="android:background">@drawable/bg_value_pill</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="android:paddingTop">4dp</item>
+        <item name="android:paddingBottom">4dp</item>
+        <item name="android:fontFeatureSettings">tnum</item>
+    </style>
+
+    <style name="Widget.PocketTts.ParamHelper" parent="">
+        <item name="android:textAppearance">?attr/textAppearanceBodySmall</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
     </style>
 </resources>
