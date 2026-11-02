@@ -10,9 +10,9 @@ plus a built-in reader with sentence highlighting.
 | :---: | :---: | :---: | :---: |
 | ![Listen](docs/images/screenshots/dark_listen.png) | ![Player](docs/images/screenshots/dark_player.png) | ![Voices](docs/images/screenshots/dark_voices.png) | ![Engine](docs/images/screenshots/dark_engine.png) |
 
-| Light mode | |
-| :---: | :---: |
-| ![Listen, light](docs/images/screenshots/light_listen.png) | ![Voices, light](docs/images/screenshots/light_voices.png) |
+| Model hub | Light mode | |
+| :---: | :---: | :---: |
+| ![Model hub](docs/images/screenshots/dark_hub.png) | ![Listen, light](docs/images/screenshots/light_listen.png) | ![Voices, light](docs/images/screenshots/light_voices.png) |
 
 ## What this fork adds
 
@@ -26,9 +26,11 @@ plus a built-in reader with sentence highlighting.
 - **Quality-checked.** Every variant was scored with Whisper word error rate and
   UTMOS on 18 book sentences. The fast pack: WER 3.5% / UTMOS 4.38 vs FP32
   2.9% / 4.43. Faster all-INT8 builds were rejected (they drop words).
-- **Voice downloads itself.** On first launch over Wi-Fi the app fetches the
-  English "Fast" pack (103 MB) and verifies it against a SHA-256 pinned in the
-  app before installing; on mobile data it's one tap. Synthesis stays offline.
+- **Model hub.** Voices → Model hub lists every pack with its size; one tap
+  downloads it with live progress, queueing and cancel, resumes after network
+  drops, and checks it against a SHA-256 pinned in the app before installing.
+  On first launch over Wi-Fi the English "Fast" pack (103 MB) downloads by
+  itself. Synthesis stays offline.
 - **New app:** Listen / Voices / Engine tabs and a player with sentence
   highlighting, tap-to-jump, 0.75–2× speed and no length limit.
 
@@ -37,10 +39,18 @@ plus a built-in reader with sentence highlighting.
 - **APK:** [latest release of this fork](https://github.com/franz101/PocketTTS-Android-Engine/releases/latest)
   (ARM64, Android 8+). It's signed with this fork's key, so uninstall the
   upstream app first if it's installed.
-- **English "Fast" pack** (downloaded by the app automatically):
-  [PocketTTS-english-Q4.zip](https://pub-f9b8d4e264df41da9c0c5f6b69e46827.r2.dev/PocketTTS-english-Q4.zip),
-  SHA-256 `9b98434c8c56b895e87299aea6afbc01ea84df1f18dd5e7a85c015e447686de5`.
-- Other languages: use the upstream packs and **Import ZIP**.
+- **Voice packs** come from the in-app model hub
+  ([catalog](app/src/main/assets/model_hub.json) with URLs and SHA-256s):
+
+  | Pack | Size | Notes |
+  | --- | --- | --- |
+  | English · Fast | 103 MB | 4-bit LM, recommended |
+  | English / German / Spanish / Italian / Portuguese · HQ | ~207 MB | upstream FP32 |
+  | German 24L · Beta | 248 MB | upstream 24-layer INT8, needs lots of memory |
+
+  The 4-bit trick only holds up in English: German and Italian 4-bit builds
+  doubled the word error rate, so they aren't offered.
+  ZIPs still work with **Import ZIP**.
 
 ## Benchmarks and quality tools
 
