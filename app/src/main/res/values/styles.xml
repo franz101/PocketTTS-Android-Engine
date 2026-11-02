@@ -1,89 +1,421 @@
 <resources>
-    <!-- Material 3 DayNight theme. On Android 12+ the activities additionally apply
-         dynamic color (Material You); these values are the fallback palette. -->
+    <!-- Brand theme. Deliberately no Material You dynamic color: the app keeps its own
+         dark-first identity. Light mode only swaps the tokens in values-notnight. -->
     <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/pt_primary</item>
-        <item name="colorOnPrimary">@color/pt_on_primary</item>
-        <item name="colorPrimaryContainer">@color/pt_primary_container</item>
-        <item name="colorOnPrimaryContainer">@color/pt_on_primary_container</item>
-        <item name="colorSecondary">@color/pt_secondary</item>
-        <item name="colorOnSecondary">@color/pt_on_secondary</item>
-        <item name="colorSecondaryContainer">@color/pt_secondary_container</item>
-        <item name="colorOnSecondaryContainer">@color/pt_on_secondary_container</item>
-        <item name="colorTertiary">@color/pt_tertiary</item>
-        <item name="colorOnTertiary">@color/pt_on_tertiary</item>
-        <item name="colorTertiaryContainer">@color/pt_tertiary_container</item>
-        <item name="colorOnTertiaryContainer">@color/pt_on_tertiary_container</item>
+        <item name="colorPrimary">@color/pt_accent</item>
+        <item name="colorOnPrimary">@color/pt_on_gradient</item>
+        <item name="colorPrimaryContainer">@color/pt_accent_soft</item>
+        <item name="colorOnPrimaryContainer">@color/pt_accent_text</item>
+        <item name="colorSecondary">@color/pt_accent</item>
+        <item name="colorOnSecondary">@color/pt_on_gradient</item>
+        <item name="colorSecondaryContainer">@color/pt_nav_indicator</item>
+        <item name="colorOnSecondaryContainer">@color/pt_text</item>
+        <item name="colorTertiary">@color/pt_grad_mid</item>
+        <item name="colorOnTertiary">@color/pt_on_gradient</item>
         <item name="colorError">@color/pt_error</item>
-        <item name="colorOnError">@color/pt_on_error</item>
-        <item name="colorErrorContainer">@color/pt_error_container</item>
-        <item name="colorOnErrorContainer">@color/pt_on_error_container</item>
-        <item name="android:colorBackground">@color/pt_surface</item>
-        <item name="colorOnBackground">@color/pt_on_surface</item>
+        <item name="colorOnError">@color/pt_on_gradient</item>
+        <item name="android:colorBackground">@color/pt_background</item>
+        <item name="colorOnBackground">@color/pt_text</item>
         <item name="colorSurface">@color/pt_surface</item>
-        <item name="colorOnSurface">@color/pt_on_surface</item>
-        <item name="colorSurfaceVariant">@color/pt_surface_variant</item>
-        <item name="colorOnSurfaceVariant">@color/pt_on_surface_variant</item>
+        <item name="colorOnSurface">@color/pt_text</item>
+        <item name="colorSurfaceVariant">@color/pt_surface_high</item>
+        <item name="colorOnSurfaceVariant">@color/pt_text_secondary</item>
         <item name="colorOutline">@color/pt_outline</item>
-        <item name="colorOutlineVariant">@color/pt_outline_variant</item>
-        <item name="colorSurfaceContainerLowest">@color/pt_surface_container_lowest</item>
-        <item name="colorSurfaceContainerLow">@color/pt_surface_container_low</item>
-        <item name="colorSurfaceContainer">@color/pt_surface_container</item>
-        <item name="colorSurfaceContainerHigh">@color/pt_surface_container_high</item>
-        <item name="colorSurfaceContainerHighest">@color/pt_surface_container_highest</item>
-        <item name="colorSurfaceDim">@color/pt_surface_dim</item>
-        <item name="colorSurfaceBright">@color/pt_surface_bright</item>
-        <item name="colorSurfaceInverse">@color/pt_inverse_surface</item>
-        <item name="colorOnSurfaceInverse">@color/pt_inverse_on_surface</item>
-        <item name="colorPrimaryInverse">@color/pt_inverse_primary</item>
-        <item name="materialCardViewStyle">@style/Widget.PocketTts.SectionCard</item>
+        <item name="colorOutlineVariant">@color/pt_outline</item>
+        <item name="colorSurfaceContainerLowest">@color/pt_background</item>
+        <item name="colorSurfaceContainerLow">@color/pt_surface</item>
+        <item name="colorSurfaceContainer">@color/pt_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/pt_surface_high</item>
+        <item name="colorSurfaceContainerHighest">@color/pt_surface_high</item>
+        <item name="colorSurfaceInverse">@color/pt_text</item>
+        <item name="colorOnSurfaceInverse">@color/pt_background</item>
+        <item name="colorPrimaryInverse">@color/pt_accent_text</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@color/pt_background</item>
+        <item name="android:textViewStyle">@style/Widget.PocketTts.TextView</item>
+        <item name="textAppearanceDisplaySmall">@style/TextAppearance.PocketTts.Display</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.PocketTts.Display</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.PocketTts.Headline</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.PocketTts.Headline</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.PocketTts.Title</item>
+        <item name="textAppearanceTitleSmall">@style/TextAppearance.PocketTts.TitleSmall</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.PocketTts.Body</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.PocketTts.BodyMedium</item>
+        <item name="textAppearanceBodySmall">@style/TextAppearance.PocketTts.BodySmall</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.PocketTts.Label</item>
+        <item name="textAppearanceLabelMedium">@style/TextAppearance.PocketTts.LabelMedium</item>
+        <item name="textAppearanceLabelSmall">@style/TextAppearance.PocketTts.LabelSmall</item>
+        <item name="materialCardViewStyle">@style/Widget.PocketTts.Card</item>
+        <item name="materialButtonStyle">@style/Widget.PocketTts.Button</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.PocketTts.Dialog</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.PocketTts.BottomSheet</item>
+        <item name="sliderStyle">@style/Widget.PocketTts.Slider</item>
+        <item name="snackbarStyle">@style/Widget.PocketTts.Snackbar</item>
+        <item name="snackbarTextViewStyle">@style/Widget.PocketTts.SnackbarText</item>
+        <item name="popupMenuStyle">@style/Widget.PocketTts.PopupMenu</item>
+        <item name="textAppearanceLargePopupMenu">@style/TextAppearance.PocketTts.Body</item>
+        <item name="textAppearanceSmallPopupMenu">@style/TextAppearance.PocketTts.Body</item>
     </style>
 
-    <!-- Sections are tonal surface containers with large corners (Material 3 filled card). -->
-    <style name="Widget.PocketTts.SectionCard" parent="Widget.Material3.CardView.Filled">
-        <item name="cardBackgroundColor">?attr/colorSurfaceContainerLow</item>
-        <item name="shapeAppearance">?attr/shapeAppearanceCornerExtraLarge</item>
-        <item name="contentPadding">20dp</item>
+    <!-- The player is an immersive, always-dark reading room. -->
+    <style name="Theme.PocketTts.Player" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/player_accent</item>
+        <item name="colorOnPrimary">@color/player_background</item>
+        <item name="colorSecondaryContainer">@color/player_highlight</item>
+        <item name="android:colorBackground">@color/player_background</item>
+        <item name="colorSurface">@color/player_surface</item>
+        <item name="colorOnSurface">@color/player_text</item>
+        <item name="colorOnSurfaceVariant">@color/player_text_dim</item>
+        <item name="colorSurfaceContainerLow">@color/player_surface</item>
+        <item name="colorSurfaceContainer">@color/player_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/player_surface_high</item>
+        <item name="colorOutline">@color/player_outline</item>
+        <item name="colorOutlineVariant">@color/player_outline</item>
+        <item name="colorSurfaceInverse">@color/player_text</item>
+        <item name="colorOnSurfaceInverse">@color/player_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@color/player_background</item>
+        <item name="android:textViewStyle">@style/Widget.PocketTts.TextView</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.PocketTts.Title</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.PocketTts.Body</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.PocketTts.BodyMedium</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.PocketTts.Label</item>
+        <item name="materialButtonStyle">@style/Widget.PocketTts.Button</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.PocketTts.BottomSheet.Player</item>
+        <item name="snackbarStyle">@style/Widget.PocketTts.Snackbar</item>
+        <item name="snackbarTextViewStyle">@style/Widget.PocketTts.SnackbarText</item>
     </style>
 
-    <style name="Widget.PocketTts.SectionIcon" parent="">
-        <item name="android:layout_width">40dp</item>
-        <item name="android:layout_height">40dp</item>
-        <item name="android:padding">9dp</item>
-        <item name="android:background">@drawable/bg_section_icon</item>
-        <item name="android:importantForAccessibility">no</item>
-        <item name="tint">?attr/colorOnSecondaryContainer</item>
+    <!-- Plain TextViews default to Inter through their text appearance, which explicit
+         styles and textAppearance attributes can still override. -->
+    <style name="Widget.PocketTts.TextView" parent="android:Widget.TextView">
+        <item name="android:textAppearance">@style/TextAppearance.PocketTts.BodyMedium</item>
     </style>
 
-    <style name="Widget.PocketTts.SectionTitle" parent="">
-        <item name="android:textAppearance">?attr/textAppearanceTitleLarge</item>
+    <!-- Typography: Inter for UI. -->
+    <style name="TextAppearance.PocketTts.Display" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">@font/inter_semibold</item>
+        <item name="fontFamily">@font/inter_semibold</item>
+        <item name="android:textSize">30sp</item>
+        <item name="android:letterSpacing">-0.025</item>
         <item name="android:textColor">?attr/colorOnSurface</item>
-        <item name="android:layout_marginStart">16dp</item>
     </style>
 
-    <style name="Widget.PocketTts.Helper" parent="">
-        <item name="android:textAppearance">?attr/textAppearanceBodyMedium</item>
-        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    <style name="TextAppearance.PocketTts.Headline" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">@font/inter_semibold</item>
+        <item name="fontFamily">@font/inter_semibold</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:letterSpacing">-0.015</item>
     </style>
 
-    <style name="Widget.PocketTts.ParamLabel" parent="">
-        <item name="android:textAppearance">?attr/textAppearanceTitleSmall</item>
-        <item name="android:textColor">?attr/colorOnSurface</item>
+    <style name="TextAppearance.PocketTts.Title" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">@font/inter_semibold</item>
+        <item name="fontFamily">@font/inter_semibold</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:letterSpacing">-0.01</item>
     </style>
 
+    <style name="TextAppearance.PocketTts.TitleSmall" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">@font/inter_semibold</item>
+        <item name="fontFamily">@font/inter_semibold</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+    <style name="TextAppearance.PocketTts.Body" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">@font/inter_regular</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+    <style name="TextAppearance.PocketTts.BodyMedium" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">@font/inter_regular</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+    <style name="TextAppearance.PocketTts.BodySmall" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">@font/inter_regular</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+    <style name="TextAppearance.PocketTts.Label" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">@font/inter_semibold</item>
+        <item name="fontFamily">@font/inter_semibold</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+    <style name="TextAppearance.PocketTts.LabelMedium" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">@font/inter_medium</item>
+        <item name="fontFamily">@font/inter_medium</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:letterSpacing">0.01</item>
+    </style>
+
+    <style name="TextAppearance.PocketTts.LabelSmall" parent="TextAppearance.AppCompat">
+        <item name="android:fontFamily">@font/inter_semibold</item>
+        <item name="fontFamily">@font/inter_semibold</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:letterSpacing">0.02</item>
+    </style>
+
+    <!-- Text styles used directly by layouts. -->
+    <style name="Text.PocketTts.Display" parent="">
+        <item name="android:textAppearance">@style/TextAppearance.PocketTts.Display</item>
+        <item name="android:textColor">@color/pt_text</item>
+    </style>
+
+    <style name="Text.PocketTts.Section" parent="">
+        <item name="android:textAppearance">@style/TextAppearance.PocketTts.Headline</item>
+        <item name="android:textColor">@color/pt_text</item>
+        <item name="android:textSize">19sp</item>
+    </style>
+
+    <style name="Text.PocketTts.Title" parent="">
+        <item name="android:textAppearance">@style/TextAppearance.PocketTts.Title</item>
+        <item name="android:textColor">@color/pt_text</item>
+    </style>
+
+    <style name="Text.PocketTts.Body" parent="">
+        <item name="android:textAppearance">@style/TextAppearance.PocketTts.BodyMedium</item>
+        <item name="android:textColor">@color/pt_text_secondary</item>
+        <item name="android:lineSpacingMultiplier">1.15</item>
+    </style>
+
+    <style name="Text.PocketTts.Caption" parent="">
+        <item name="android:textAppearance">@style/TextAppearance.PocketTts.BodySmall</item>
+        <item name="android:textColor">@color/pt_text_secondary</item>
+    </style>
+
+    <style name="Text.PocketTts.Overline" parent="">
+        <item name="android:textAppearance">@style/TextAppearance.PocketTts.LabelSmall</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.1</item>
+    </style>
+
+    <style name="Text.PocketTts.Badge" parent="">
+        <item name="android:textAppearance">@style/TextAppearance.PocketTts.LabelSmall</item>
+        <item name="android:textColor">@color/pt_accent_text</item>
+        <item name="android:background">@drawable/bg_badge</item>
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:paddingEnd">8dp</item>
+        <item name="android:paddingTop">3dp</item>
+        <item name="android:paddingBottom">3dp</item>
+        <item name="android:maxLines">1</item>
+    </style>
+
+    <!-- Cards: flat surfaces, 24dp radius, 1dp hairline instead of shadows. -->
+    <style name="Widget.PocketTts.Card" parent="Widget.Material3.CardView.Outlined">
+        <item name="cardBackgroundColor">@color/pt_surface</item>
+        <item name="strokeColor">@color/pt_outline</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="shapeAppearance">@style/Shape.PocketTts.Card</item>
+    </style>
+
+    <style name="Shape.PocketTts.Card" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">24dp</item>
+    </style>
+
+    <style name="Shape.PocketTts.Inner" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="Shape.PocketTts.Pill" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <!-- Buttons: pill shaped, generous touch targets. -->
+    <style name="Widget.PocketTts.Button" parent="Widget.Material3.Button">
+        <item name="android:minHeight">52dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:paddingStart">22dp</item>
+        <item name="android:paddingEnd">22dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.PocketTts.Label</item>
+        <item name="shapeAppearance">@style/Shape.PocketTts.Pill</item>
+        <item name="iconPadding">8dp</item>
+        <item name="iconSize">20dp</item>
+        <item name="backgroundTint">@color/pt_accent</item>
+        <item name="android:textColor">@color/pt_on_gradient</item>
+        <item name="iconTint">@color/pt_on_gradient</item>
+    </style>
+
+    <style name="Widget.PocketTts.Button.Tonal" parent="Widget.Material3.Button.TonalButton">
+        <item name="android:minHeight">52dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.PocketTts.Label</item>
+        <item name="shapeAppearance">@style/Shape.PocketTts.Pill</item>
+        <item name="iconPadding">8dp</item>
+        <item name="iconSize">20dp</item>
+        <item name="backgroundTint">@color/pt_surface_high</item>
+        <item name="android:textColor">@color/pt_text</item>
+        <item name="iconTint">@color/pt_text</item>
+        <item name="strokeColor">@color/pt_outline</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <style name="Widget.PocketTts.Button.Text" parent="Widget.Material3.Button.TextButton">
+        <item name="android:minHeight">48dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.PocketTts.Label</item>
+        <item name="shapeAppearance">@style/Shape.PocketTts.Pill</item>
+        <item name="android:textColor">@color/pt_accent_text</item>
+        <item name="iconTint">@color/pt_accent_text</item>
+        <item name="iconSize">18dp</item>
+        <item name="iconPadding">6dp</item>
+    </style>
+
+    <!-- Hero buttons sit on the brand gradient. -->
+    <style name="Widget.PocketTts.Button.OnGradient" parent="Widget.PocketTts.Button">
+        <item name="backgroundTint">@color/pt_glass_strong</item>
+        <item name="android:textColor">#15121F</item>
+        <item name="iconTint">#15121F</item>
+        <item name="rippleColor">#33000000</item>
+        <item name="android:paddingStart">18dp</item>
+        <item name="android:paddingEnd">20dp</item>
+    </style>
+
+    <style name="Widget.PocketTts.Button.OnGradientGlass" parent="Widget.PocketTts.Button">
+        <item name="backgroundTint">#38140C2E</item>
+        <item name="android:textColor">@color/pt_on_gradient</item>
+        <item name="iconTint">@color/pt_on_gradient</item>
+        <item name="strokeColor">#59FFFFFF</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="android:paddingStart">18dp</item>
+        <item name="android:paddingEnd">20dp</item>
+    </style>
+
+    <style name="Widget.PocketTts.IconButton" parent="Widget.Material3.Button.IconButton">
+        <item name="iconTint">@color/pt_text</item>
+        <item name="iconSize">22dp</item>
+        <item name="android:minWidth">48dp</item>
+        <item name="android:minHeight">48dp</item>
+    </style>
+
+    <style name="Widget.PocketTts.Slider" parent="Widget.Material3.Slider">
+        <item name="trackColorActive">@color/pt_accent</item>
+        <item name="trackColorInactive">@color/pt_surface_high</item>
+        <item name="thumbColor">@color/pt_accent</item>
+        <item name="tickColorActive">@color/pt_on_gradient</item>
+        <item name="tickColorInactive">@color/pt_text_tertiary</item>
+        <item name="labelStyle">@style/Widget.PocketTts.SliderLabel</item>
+    </style>
+
+    <style name="Widget.PocketTts.SliderLabel" parent="Widget.Material3.Tooltip">
+        <item name="android:textAppearance">@style/TextAppearance.PocketTts.LabelMedium</item>
+        <item name="backgroundTint">@color/pt_text</item>
+        <item name="android:textColor">@color/pt_background</item>
+    </style>
+
+    <style name="Widget.PocketTts.Snackbar" parent="Widget.Material3.Snackbar">
+        <item name="shapeAppearance">@style/Shape.PocketTts.Inner</item>
+        <item name="android:layout_margin">12dp</item>
+    </style>
+
+    <style name="Widget.PocketTts.SnackbarText" parent="Widget.Material3.Snackbar.TextView">
+        <item name="android:textAppearance">@style/TextAppearance.PocketTts.BodyMedium</item>
+        <item name="android:maxLines">4</item>
+    </style>
+
+    <style name="Widget.PocketTts.PopupMenu" parent="Widget.Material3.PopupMenu">
+        <item name="android:popupBackground">@drawable/bg_popup</item>
+    </style>
+
+    <style name="Widget.PocketTts.BottomNav" parent="Widget.Material3.BottomNavigationView">
+        <item name="backgroundTint">@color/pt_background</item>
+        <item name="itemIconTint">@color/nav_item</item>
+        <item name="itemTextColor">@color/nav_item</item>
+        <item name="itemActiveIndicatorStyle">@style/Widget.PocketTts.NavIndicator</item>
+        <item name="itemTextAppearanceActive">@style/TextAppearance.PocketTts.NavLabelActive</item>
+        <item name="itemTextAppearanceInactive">@style/TextAppearance.PocketTts.NavLabel</item>
+        <item name="elevation">0dp</item>
+    </style>
+
+    <style name="Widget.PocketTts.NavIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/pt_nav_indicator</item>
+    </style>
+
+    <style name="TextAppearance.PocketTts.NavLabel" parent="TextAppearance.PocketTts.LabelMedium" />
+
+    <style name="TextAppearance.PocketTts.NavLabelActive" parent="TextAppearance.PocketTts.LabelMedium">
+        <item name="android:fontFamily">@font/inter_semibold</item>
+        <item name="fontFamily">@font/inter_semibold</item>
+    </style>
+
+    <!-- Dialogs and sheets. -->
+    <style name="ThemeOverlay.PocketTts.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorSurface">@color/pt_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/pt_surface</item>
+        <item name="shapeAppearanceCornerExtraLarge">@style/Shape.PocketTts.Card</item>
+        <item name="materialAlertDialogTitleTextStyle">@style/Widget.PocketTts.DialogTitle</item>
+        <item name="materialAlertDialogBodyTextStyle">@style/Widget.PocketTts.DialogBody</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.PocketTts.Button.Text</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.PocketTts.Button.Text.Neutral</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.PocketTts.Button.Text.Neutral</item>
+    </style>
+
+    <style name="Widget.PocketTts.Button.Text.Neutral" parent="Widget.PocketTts.Button.Text">
+        <item name="android:textColor">@color/pt_text_secondary</item>
+    </style>
+
+    <style name="Widget.PocketTts.DialogTitle" parent="MaterialAlertDialog.Material3.Title.Text">
+        <item name="android:textAppearance">@style/TextAppearance.PocketTts.Headline</item>
+        <item name="android:textColor">@color/pt_text</item>
+    </style>
+
+    <style name="Widget.PocketTts.DialogBody" parent="MaterialAlertDialog.Material3.Body.Text">
+        <item name="android:textAppearance">@style/TextAppearance.PocketTts.BodyMedium</item>
+        <item name="android:textColor">@color/pt_text_secondary</item>
+        <item name="android:lineSpacingMultiplier">1.2</item>
+    </style>
+
+    <style name="ThemeOverlay.PocketTts.BottomSheet" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.PocketTts.BottomSheet</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <style name="ThemeOverlay.PocketTts.BottomSheet.Player">
+        <item name="bottomSheetStyle">@style/Widget.PocketTts.BottomSheet.Player</item>
+    </style>
+
+    <style name="Widget.PocketTts.BottomSheet" parent="Widget.Material3.BottomSheet.Modal">
+        <item name="backgroundTint">@color/pt_surface</item>
+        <item name="shapeAppearance">@style/Shape.PocketTts.Sheet</item>
+    </style>
+
+    <style name="Widget.PocketTts.BottomSheet.Player">
+        <item name="backgroundTint">@color/player_surface</item>
+    </style>
+
+    <style name="Shape.PocketTts.Sheet" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">28dp</item>
+        <item name="cornerSizeTopRight">28dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+
+    <!-- Generation parameter rows. -->
     <style name="Widget.PocketTts.ParamValue" parent="">
-        <item name="android:textAppearance">?attr/textAppearanceLabelLarge</item>
-        <item name="android:textColor">?attr/colorOnSecondaryContainer</item>
-        <item name="android:background">@drawable/bg_value_pill</item>
-        <item name="android:paddingStart">12dp</item>
-        <item name="android:paddingEnd">12dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.PocketTts.LabelMedium</item>
+        <item name="android:textColor">@color/pt_accent_text</item>
+        <item name="android:background">@drawable/bg_badge</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingEnd">10dp</item>
         <item name="android:paddingTop">4dp</item>
         <item name="android:paddingBottom">4dp</item>
         <item name="android:fontFeatureSettings">tnum</item>
-    </style>
-
-    <style name="Widget.PocketTts.ParamHelper" parent="">
-        <item name="android:textAppearance">?attr/textAppearanceBodySmall</item>
-        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
     </style>
 </resources>

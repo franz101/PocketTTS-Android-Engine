@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased — Reader UI
+
+- Rebuild the companion app as a dark-first "listen to text" app with Listen, Voices and Engine tabs, the brand gradient, bundled Inter/Literata fonts, a vector adaptive icon and a light variant.
+- Listen: paste text or open a `.txt` file, resume up to five recent texts at the saved sentence, and see whether Pocket TTS is Android's active engine.
+- Voices: a voice grid with per-voice previews through the engine, voice cloning from WAV, and language-pack management.
+- Engine: system status, a collapsible fine-tune card for the five generation parameters, about and license information.
+- Player: sentence-by-sentence playback with highlighting, tap-to-jump, previous/next, speed control and a voice switcher. Long shared texts are no longer limited to 4,000 characters.
+- Enable R8 minification and resource shrinking for release builds, with keep rules for the JNI bridge.
+
 ## 0.5.6-rc1 — Uber discovery compatibility candidate
 
 - Add a real plain-text share destination and a read-aloud screen with review, selected pack/voice, explicit playback, and stop controls in all five UI languages.

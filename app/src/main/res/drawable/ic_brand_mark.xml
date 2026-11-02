@@ -1,0 +1,4 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/bg_brand_gradient_small" />
+    <item android:drawable="@drawable/ic_brand_wave" android:left="6dp" android:top="6dp" android:right="6dp" android:bottom="6dp" />
+</layer-list>

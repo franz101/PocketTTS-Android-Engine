@@ -7,7 +7,7 @@ and exposes it through Android's `TextToSpeechService`, so applications such as
 [Layla](https://www.layla-network.ai/) can use Pocket TTS as a native system
 voice.
 
-![Pocket TTS Android Engine artwork](app/src/main/res/drawable-nodpi/pocket_voice_hero.png)
+![Pocket TTS Android Engine artwork](docs/images/pocket_voice_hero.png)
 
 > Status: experimental community software for ARM64 Android devices.
 > See [compatibility and support](#compatibility-and-support) for requirements

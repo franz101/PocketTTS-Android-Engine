@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    android:clickable="true"
+    android:focusable="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <FrameLayout
+            android:id="@+id/recent_cover"
+            android:layout_width="52dp"
+            android:layout_height="52dp">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_file"
+                app:tint="@color/pt_on_gradient" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/recent_title"
+                style="@style/Text.PocketTts.Title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textSize="15sp"
+                tools:text="The quick brown fox jumps over the lazy…" />
+
+            <TextView
+                android:id="@+id/recent_meta"
+                style="@style/Text.PocketTts.Caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:maxLines="1"
+                tools:text="42% · 2 hours ago" />
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/recent_progress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="9dp"
+                android:max="1000"
+                app:indicatorColor="@color/pt_accent"
+                app:indicatorTrackGapSize="0dp"
+                app:trackColor="@color/pt_surface_high"
+                app:trackCornerRadius="2dp"
+                app:trackStopIndicatorSize="0dp"
+                app:trackThickness="4dp" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="14dp"
+            android:background="@drawable/bg_round_button"
+            android:importantForAccessibility="no"
+            android:padding="9dp"
+            android:src="@drawable/ic_play_rounded"
+            app:tint="@color/pt_text" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

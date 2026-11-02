@@ -1,0 +1,36 @@
+<!-- Hero artwork: soft light orbs and a radiating sound-wave motif over the brand gradient. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="372dp"
+    android:height="248dp"
+    android:viewportWidth="372"
+    android:viewportHeight="248">
+    <path android:pathData="M332,-80a130,130 0,1 1,0 260a130,130 0,1 1,0 -260z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="radial" android:centerX="332" android:centerY="50" android:gradientRadius="130"
+                android:startColor="#59FFFFFF" android:endColor="#00FFFFFF" />
+        </aapt:attr>
+    </path>
+    <path android:pathData="M30,130a140,140 0,1 1,0 280a140,140 0,1 1,0 -280z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="radial" android:centerX="30" android:centerY="270" android:gradientRadius="140"
+                android:startColor="#995B3DF5" android:endColor="#005B3DF5" />
+        </aapt:attr>
+    </path>
+    <path android:pathData="M250,170a90,90 0,1 1,0 180a90,90 0,1 1,0 -180z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="radial" android:centerX="250" android:centerY="260" android:gradientRadius="90"
+                android:startColor="#40FFE3B0" android:endColor="#00FFE3B0" />
+        </aapt:attr>
+    </path>
+    <!-- Concentric rings radiating from the top-right corner. -->
+    <path android:pathData="M332,-6a52,52 0,1 1,0 104a52,52 0,1 1,0 -104z"
+        android:strokeColor="#2EFFFFFF" android:strokeWidth="1.2" />
+    <path android:pathData="M332,-38a84,84 0,1 1,0 168a84,84 0,1 1,0 -168z"
+        android:strokeColor="#1FFFFFFF" android:strokeWidth="1.2" />
+    <path android:pathData="M332,-70a116,116 0,1 1,0 232a116,116 0,1 1,0 -232z"
+        android:strokeColor="#14FFFFFF" android:strokeWidth="1.2" />
+    <!-- Sound-wave bars. -->
+    <path android:strokeColor="#E6FFFFFF" android:strokeWidth="5" android:strokeLineCap="round"
+        android:pathData="M300,40v20M312,30v40M324,20v60M336,32v36M348,42v16" />
+</vector>

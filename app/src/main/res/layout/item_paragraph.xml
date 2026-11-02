@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<org.pockettts.android.engine.ReaderTextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:breakStrategy="high_quality"
+    android:fontFamily="@font/literata_regular"
+    android:hyphenationFrequency="normal"
+    android:lineSpacingMultiplier="1.5"
+    android:textColor="@color/player_text"
+    android:textSize="19sp" />

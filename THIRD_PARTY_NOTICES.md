@@ -14,9 +14,19 @@ by Kyutai, VolgaGerm, Microsoft, Google, mackron, Google Play, Android, or Layla
 | SentencePiece 0.2.1 | Text tokenization | [google/sentencepiece](https://github.com/google/sentencepiece) | Apache-2.0 |
 | dr_libs / dr_wav | WAV decoding | [mackron/dr_libs](https://github.com/mackron/dr_libs) | Public domain or MIT-0, at the user's option |
 | AndroidX Core and AppCompat | Android application support libraries | [androidx/androidx](https://github.com/androidx/androidx) | Apache-2.0 |
+| Material Components for Android | UI components | [material-components/material-components-android](https://github.com/material-components/material-components-android) | Apache-2.0 |
+| Inter | User-interface typeface (bundled in `app/src/main/res/font`) | [rsms/inter](https://github.com/rsms/inter), via [google/fonts](https://github.com/google/fonts/tree/main/ofl/inter) | SIL Open Font License 1.1 |
+| Literata | Reading typeface of the player (bundled in `app/src/main/res/font`) | [googlefonts/literata](https://github.com/googlefonts/literata), via [google/fonts](https://github.com/google/fonts/tree/main/ofl/literata) | SIL Open Font License 1.1 |
 | Sonic | Streaming speech speed and pitch processing | [waywardgeek/sonic](https://github.com/waywardgeek/sonic) | Apache-2.0; pinned source and license in `vendor/sonic` |
 | Kotlin | Android application language/runtime | [JetBrains/kotlin](https://github.com/JetBrains/kotlin) | Apache-2.0 |
 | Gradle | Build system | [gradle/gradle](https://github.com/gradle/gradle) | Apache-2.0 |
+
+The Inter and Literata files are static instances (Inter 400/500/600/700, Literata
+400/600) generated from the variable fonts in the google/fonts repository and
+subset to Latin, Greek and Cyrillic with fontTools. Neither font declares a
+Reserved Font Name. Their licenses are shipped in the app as
+`assets/licenses/Inter-OFL.txt` and `assets/licenses/Literata-OFL.txt` and are
+shown under Engine → Open-source licenses.
 
 The snapshot under `vendor/pocket-tts` is based on upstream commit
 `d108410d23eef7e01db282f9442891162dbc3db6`. Its original MIT license is kept

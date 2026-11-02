@@ -1,75 +1,57 @@
 package org.pockettts.android.engine
 
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.speech.tts.TextToSpeech
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.View
-import android.widget.ArrayAdapter
-import android.widget.Filter
-import android.widget.ImageView
+import android.view.WindowManager
+import android.widget.EditText
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
-import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.card.MaterialCardView
-import com.google.android.material.chip.Chip
-import com.google.android.material.color.DynamicColors
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.progressindicator.LinearProgressIndicator
-import com.google.android.material.slider.Slider
-import com.google.android.material.slider.TickVisibilityMode
 import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.textfield.MaterialAutoCompleteTextView
-import com.google.android.material.textfield.TextInputLayout
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.util.Locale
+import java.text.NumberFormat
 import kotlin.concurrent.thread
-import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
     private lateinit var root: View
-    private lateinit var packLayout: TextInputLayout
-    private lateinit var packDropdown: MaterialAutoCompleteTextView
-    private lateinit var voiceLayout: TextInputLayout
-    private lateinit var voiceDropdown: MaterialAutoCompleteTextView
-    private lateinit var importVoiceButton: MaterialButton
-    private lateinit var deletePackButton: MaterialButton
-    private lateinit var temperatureInput: ParamControl
-    private lateinit var lsdInput: ParamControl
-    private lateinit var threadsInput: ParamControl
-    private lateinit var sentencePauseInput: ParamControl
-    private lateinit var maxTextTokensInput: ParamControl
-    private lateinit var statusCard: MaterialCardView
-    private lateinit var statusIcon: ImageView
-    private lateinit var statusTitle: TextView
-    private lateinit var statusBody: TextView
-    private lateinit var packChip: Chip
-    private lateinit var voiceChip: Chip
-    private lateinit var statusProgress: LinearProgressIndicator
-    private lateinit var statusView: TextView
-    private lateinit var setDefaultButton: MaterialButton
+    private lateinit var bottomNav: BottomNavigationView
+    private lateinit var screens: List<View>
+    private lateinit var listenTab: ListenTab
+    private lateinit var voicesTab: VoicesTab
+    private lateinit var engineTab: EngineTab
     private var uiCreated = false
-    private var packs: List<ModelPack> = emptyList()
-    private var visibleVoices: List<PackVoice> = emptyList()
-    private var selectedVoiceIndex = -1
-    private var currentPack: ModelPack? = null
+    private var currentTab = TAB_LISTEN
+    private var voiceImportPackId: String? = null
+    internal var packs: List<ModelPack> = emptyList()
+        private set
+    internal val preview: VoicePreview by lazy {
+        VoicePreview(this) { name, state -> if (uiCreated) voicesTab.setPreviewState(name, state) }
+    }
 
     override fun onCreate(state: Bundle?) {
         enableEdgeToEdge()
-        DynamicColors.applyToActivityIfAvailable(this)
         super.onCreate(state)
         ModelPackRepository.migrateLegacy(this)
         ModelPackRepository.applySystemDefaultSelection(this)
@@ -105,289 +87,337 @@ class MainActivity : AppCompatActivity() {
             showMultiVoiceSelfTest()
             return
         }
+        voiceImportPackId = state?.getString(STATE_VOICE_PACK)
         createUi()
         refreshData()
+        val initialTab = state?.getInt(STATE_TAB) ?: tabFromIntent(intent)
+        showTab(initialTab, animate = false)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (uiCreated && (intent.hasExtra(EXTRA_TAB) || intent.action == TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA)) {
+            refreshData()
+            showTab(tabFromIntent(intent), animate = true)
+        }
+    }
+
+    private fun tabFromIntent(intent: Intent?): Int = when {
+        intent?.action == TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA -> TAB_VOICES
+        else -> intent?.getIntExtra(EXTRA_TAB, TAB_LISTEN) ?: TAB_LISTEN
     }
 
     override fun onResume() {
         super.onResume()
-        // The user may have changed the preferred engine in Android's settings meanwhile.
-        if (uiCreated) updateEngineStatus()
+        // The preferred engine, recents or voice may have changed elsewhere meanwhile.
+        if (uiCreated) {
+            listenTab.refresh()
+            engineTab.updateStatus()
+            voicesTab.updateSelection(animate = false)
+        }
+    }
+
+    override fun onStop() {
+        if (uiCreated) preview.stop()
+        super.onStop()
+    }
+
+    override fun onDestroy() {
+        if (uiCreated) preview.release()
+        super.onDestroy()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(STATE_TAB, currentTab)
+        voiceImportPackId?.let { outState.putString(STATE_VOICE_PACK, it) }
     }
 
     private fun createUi() {
         setContentView(R.layout.activity_main)
         root = findViewById(R.id.main_root)
-        val scroll = findViewById<View>(R.id.main_scroll)
-        ViewCompat.setOnApplyWindowInsetsListener(scroll) { view, insets ->
-            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
-            view.setPadding(bars.left, bars.top + dp(16), bars.right, bars.bottom + dp(32))
+        bottomNav = findViewById(R.id.bottom_nav)
+        screens = listOf(
+            findViewById(R.id.screen_listen),
+            findViewById(R.id.screen_voices),
+            findViewById(R.id.screen_engine)
+        )
+        screens.forEach { screen ->
+            ViewCompat.setOnApplyWindowInsetsListener(screen) { view, insets ->
+                val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+                view.updatePadding(left = bars.left, top = bars.top + dp(8), right = bars.right)
+                insets
+            }
+        }
+        val scrim = findViewById<View>(R.id.status_scrim)
+        ViewCompat.setOnApplyWindowInsetsListener(scrim) { view, insets ->
+            val top = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()).top
+            view.layoutParams = view.layoutParams.apply { height = top }
             insets
         }
-
-        statusCard = findViewById(R.id.status_card)
-        statusIcon = findViewById(R.id.status_icon)
-        statusTitle = findViewById(R.id.status_title)
-        statusBody = findViewById(R.id.status_body)
-        packChip = findViewById(R.id.active_pack_chip)
-        voiceChip = findViewById(R.id.active_voice_chip)
-        statusProgress = findViewById(R.id.status_progress)
-        statusView = findViewById(R.id.status_message)
-        setDefaultButton = findViewById(R.id.set_default_button)
-        setDefaultButton.setOnClickListener { openTtsSettings() }
-
-        packLayout = findViewById(R.id.pack_layout)
-        packDropdown = findViewById(R.id.pack_dropdown)
-        voiceLayout = findViewById(R.id.voice_layout)
-        voiceDropdown = findViewById(R.id.voice_dropdown)
-        importVoiceButton = findViewById(R.id.import_voice_button)
-        deletePackButton = findViewById(R.id.delete_pack_button)
-
-        findViewById<View>(R.id.download_packs_button).setOnClickListener {
-            runCatching {
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("$REPOSITORY_URL/releases/latest")))
-            }.onFailure {
-                showStatus(getString(R.string.error_open_downloads), notify = true)
-            }
+        listenTab = ListenTab(this, findViewById(R.id.screen_listen))
+        voicesTab = VoicesTab(this, findViewById(R.id.screen_voices))
+        engineTab = EngineTab(this, findViewById(R.id.screen_engine))
+        bottomNav.setOnItemSelectedListener { item ->
+            showTab(
+                when (item.itemId) {
+                    R.id.nav_voices -> TAB_VOICES
+                    R.id.nav_engine -> TAB_ENGINE
+                    else -> TAB_LISTEN
+                }, animate = true
+            )
+            true
         }
-        findViewById<View>(R.id.import_pack_button).setOnClickListener { confirmModelPackImport() }
-        deletePackButton.setOnClickListener { confirmDeletePack() }
-        importVoiceButton.setOnClickListener { openDocument(REQUEST_VOICE, "audio/wav") }
-
-        temperatureInput = ParamControl(R.id.param_temperature, R.string.param_temperature,
-            R.string.param_temperature_help, R.string.temperature_label, 0f, 2f, 0.01f) {
-            String.format(Locale.getDefault(), "%.2f", it)
-        }
-        lsdInput = ParamControl(R.id.param_lsd, R.string.param_lsd_steps,
-            R.string.param_lsd_steps_help, R.string.lsd_steps_label, 1f, 8f, 1f) { it.roundToInt().toString() }
-        threadsInput = ParamControl(R.id.param_threads, R.string.param_cpu_threads,
-            R.string.param_cpu_threads_help, R.string.cpu_threads_label, 1f, 8f, 1f) { it.roundToInt().toString() }
-        sentencePauseInput = ParamControl(R.id.param_pause, R.string.param_sentence_pause,
-            R.string.param_sentence_pause_help, R.string.sentence_pause_label, 0f, 2000f, 1f) {
-            getString(R.string.value_milliseconds, it.roundToInt())
-        }
-        maxTextTokensInput = ParamControl(R.id.param_tokens, R.string.param_max_text_tokens,
-            R.string.param_max_text_tokens_help, R.string.max_text_tokens_label, 10f, 200f, 1f) {
-            it.roundToInt().toString()
-        }
-
-        findViewById<View>(R.id.save_button).setOnClickListener { saveSettings() }
-        findViewById<View>(R.id.read_aloud_button).setOnClickListener {
-            startActivity(Intent(this@MainActivity, ReadAloudActivity::class.java))
-        }
-        findViewById<View>(R.id.open_tts_button).setOnClickListener { openTtsSettings() }
-        findViewById<View>(R.id.about_button).setOnClickListener { showAbout() }
-
-        packDropdown.setOnItemClickListener { _, _, position, _ ->
-            packs.getOrNull(position)?.let {
-                ModelPackRepository.selectPack(this@MainActivity, it.id)
-                showPack(it)
-            }
-        }
-        voiceDropdown.setOnItemClickListener { _, _, position, _ ->
-            val pack = currentPack ?: return@setOnItemClickListener
-            visibleVoices.getOrNull(position)?.let {
-                selectedVoiceIndex = position
-                ModelPackRepository.selectVoice(this@MainActivity, pack.id, it.id)
-                updateEngineStatus()
-            }
-        }
+        bottomNav.setOnItemReselectedListener { (screens[currentTab] as? androidx.core.widget.NestedScrollView)?.smoothScrollTo(0, 0) }
         uiCreated = true
     }
 
-    private fun refreshData(message: String? = null) {
+    internal fun showTab(tab: Int, animate: Boolean) {
+        val target = tab.coerceIn(TAB_LISTEN, TAB_ENGINE)
+        val navId = when (target) {
+            TAB_VOICES -> R.id.nav_voices
+            TAB_ENGINE -> R.id.nav_engine
+            else -> R.id.nav_listen
+        }
+        if (bottomNav.selectedItemId != navId) bottomNav.menu.findItem(navId).isChecked = true
+        if (target != TAB_VOICES) preview.stopIfActive()
+        val previous = currentTab
+        currentTab = target
+        screens.forEachIndexed { index, screen ->
+            if (index == target) {
+                if (animate && previous != target) UiKit.fadeIn(screen, 200) else {
+                    screen.alpha = 1f
+                    screen.translationY = 0f
+                    screen.visibility = View.VISIBLE
+                }
+            } else {
+                screen.animate().cancel()
+                screen.visibility = View.GONE
+            }
+        }
+    }
+
+    /** Reloads packs and re-renders every tab, optionally announcing [message]. */
+    internal fun refreshData(message: String? = null) {
         packs = ModelPackRepository.list(this)
-        val selected = ModelPackRepository.selectedPack(this)
-        val index = packs.indexOfFirst { it.id == selected?.id }.coerceAtLeast(0)
-        packDropdown.setAdapter(DropdownAdapter(this, packs.map { it.displayName }))
-        packLayout.isEnabled = packs.isNotEmpty()
-        val pack = packs.getOrNull(index)
-        packDropdown.setText(pack?.displayName ?: getString(R.string.no_language_pack), false)
-        // Persist the effective selection, as the former spinner did on its initial selection.
-        pack?.let { ModelPackRepository.selectPack(this, it.id) }
-        showPack(pack)
-        val status = message ?: if (packs.isEmpty()) {
-            getString(R.string.status_no_model)
-        } else {
-            getString(R.string.status_installed, packs.size)
+        // Persist the effective selection, as the former spinners did on their initial selection.
+        ModelPackRepository.selectedPack(this)?.let { pack ->
+            ModelPackRepository.selectPack(this, pack.id)
+            ModelPackRepository.selectedVoiceId(this, pack)?.let { ModelPackRepository.selectVoice(this, pack.id, it) }
         }
-        showStatus(status, notify = message != null)
+        listenTab.refresh()
+        voicesTab.render(packs)
+        engineTab.render(packs)
+        message?.let { showMessage(it) }
     }
 
-    private fun showPack(pack: ModelPack?) {
-        currentPack = pack
-        visibleVoices = pack?.voices.orEmpty()
-        voiceDropdown.setAdapter(DropdownAdapter(this, visibleVoices.map { it.displayName }))
-        val selectedVoice = pack?.let { ModelPackRepository.selectedVoiceId(this, it) }
-        val voiceIndex = visibleVoices.indexOfFirst { it.id == selectedVoice }.coerceAtLeast(0)
-        val voice = visibleVoices.getOrNull(voiceIndex)
-        selectedVoiceIndex = if (voice != null) voiceIndex else -1
-        voiceDropdown.setText(voice?.displayName ?: getString(R.string.no_voice), false)
-        voiceLayout.isEnabled = visibleVoices.isNotEmpty()
-        if (pack != null && voice != null) ModelPackRepository.selectVoice(this, pack.id, voice.id)
-        importVoiceButton.isEnabled = pack != null
-        deletePackButton.isEnabled = pack != null
-        temperatureInput.isEnabled = pack != null
-        lsdInput.isEnabled = pack != null
-        threadsInput.isEnabled = pack != null
-        sentencePauseInput.isEnabled = pack != null
-        maxTextTokensInput.isEnabled = pack != null
-        temperatureInput.setValue(pack?.let { ModelPackRepository.temperature(this, it) })
-        lsdInput.setValue(pack?.let { ModelPackRepository.lsdSteps(this, it).toFloat() })
-        threadsInput.setValue(pack?.let { ModelPackRepository.threads(this, it).toFloat() })
-        sentencePauseInput.setValue(pack?.let { ModelPackRepository.sentencePauseMs(this, it).toFloat() })
-        maxTextTokensInput.setValue(pack?.let { ModelPackRepository.maxTextTokens(this, it).toFloat() })
-        updateEngineStatus()
+    internal fun onVoiceSelected() {
+        voicesTab.updateSelection(animate = true)
+        engineTab.updateStatus()
     }
 
-    /** Updates the banner: whether Pocket TTS is Android's default engine and what is active. */
-    private fun updateEngineStatus() {
-        val defaultEngine = runCatching {
-            Settings.Secure.getString(contentResolver, Settings.Secure.TTS_DEFAULT_SYNTH)
-        }.getOrNull()
-        val isDefault = defaultEngine == packageName
-        val containerAttr = if (isDefault) {
-            com.google.android.material.R.attr.colorPrimaryContainer
-        } else com.google.android.material.R.attr.colorTertiaryContainer
-        val onContainerAttr = if (isDefault) {
-            com.google.android.material.R.attr.colorOnPrimaryContainer
-        } else com.google.android.material.R.attr.colorOnTertiaryContainer
-        val container = MaterialColors.getColor(statusCard, containerAttr)
-        val onContainer = MaterialColors.getColor(statusCard, onContainerAttr)
-        statusCard.setCardBackgroundColor(container)
-        statusIcon.setImageResource(if (isDefault) R.drawable.ic_check_circle else R.drawable.ic_warning)
-        statusIcon.imageTintList = ColorStateList.valueOf(onContainer)
-        statusTitle.setText(if (isDefault) R.string.engine_default_title else R.string.engine_not_default_title)
-        statusBody.setText(if (isDefault) R.string.engine_default_body else R.string.engine_not_default_body)
-        statusTitle.setTextColor(onContainer)
-        statusBody.setTextColor(onContainer)
-        statusView.setTextColor(onContainer)
-        setDefaultButton.visibility = if (isDefault) View.GONE else View.VISIBLE
+    internal fun showMessage(message: String) {
+        Snackbar.make(root, message, Snackbar.LENGTH_LONG).setAnchorView(bottomNav).show()
+    }
 
-        val chipBackground = ColorStateList.valueOf(
-            MaterialColors.getColor(statusCard, com.google.android.material.R.attr.colorSurfaceContainerLowest)
+    internal fun isDefaultEngine(): Boolean = runCatching {
+        Settings.Secure.getString(contentResolver, Settings.Secure.TTS_DEFAULT_SYNTH)
+    }.getOrNull() == packageName
+
+    internal fun openTtsSettings() {
+        runCatching { startActivity(Intent("com.android.settings.TTS_SETTINGS")) }
+            .onFailure { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
+    }
+
+    internal fun openUrl(url: String, errorMessage: Int) {
+        runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+            .onFailure { showMessage(getString(errorMessage)) }
+    }
+
+    internal fun openPackDownloads() = openUrl("$REPOSITORY_URL/releases/latest", R.string.error_open_downloads)
+
+    internal fun openPlayer(recentId: String, autoplay: Boolean) {
+        startActivity(
+            Intent(this, ReadAloudActivity::class.java)
+                .putExtra(ReadAloudActivity.EXTRA_RECENT_ID, recentId)
+                .putExtra(ReadAloudActivity.EXTRA_AUTOPLAY, autoplay)
         )
-        listOf(packChip, voiceChip).forEach {
-            it.chipBackgroundColor = chipBackground
-            it.chipStrokeWidth = 0f
+    }
+
+    // ---- Listen: paste text and open file -------------------------------------------------
+
+    internal fun showPasteSheet() {
+        val dialog = BottomSheetDialog(this)
+        val content = layoutInflater.inflate(R.layout.sheet_paste, null)
+        val input = content.findViewById<EditText>(R.id.paste_input)
+        val count = content.findViewById<TextView>(R.id.paste_count)
+        val listen = content.findViewById<MaterialButton>(R.id.paste_listen)
+        input.isSaveEnabled = false
+        fun update() {
+            val length = input.text.length
+            count.text = getString(R.string.paste_count, NumberFormat.getIntegerInstance().format(length))
+            listen.isEnabled = input.text.isNotBlank()
         }
-        val pack = currentPack
-        packChip.text = pack?.displayName ?: getString(R.string.no_language_pack)
-        voiceChip.text = visibleVoices.getOrNull(selectedVoiceIndex)?.displayName ?: getString(R.string.no_voice)
-        voiceChip.visibility = if (pack != null) View.VISIBLE else View.GONE
+        fun pasteClipboard() {
+            val clip = (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).primaryClip
+            val text = clip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(this)?.toString()
+            if (text.isNullOrBlank()) {
+                if (input.text.isEmpty()) input.requestFocus()
+            } else {
+                input.setText(text.take(RecentTexts.MAX_CHARS))
+                input.setSelection(0)
+            }
+        }
+        input.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+            override fun afterTextChanged(s: Editable?) = update()
+        })
+        content.findViewById<View>(R.id.paste_clipboard).setOnClickListener { pasteClipboard() }
+        listen.setOnClickListener {
+            val text = input.text.toString().trim()
+            if (text.isEmpty()) return@setOnClickListener
+            val item = RecentTexts.add(this, ReaderText.title(text), text)
+            dialog.dismiss()
+            openPlayer(item.id, autoplay = true)
+        }
+        pasteClipboard()
+        update()
+        dialog.setContentView(content)
+        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        dialog.behavior.skipCollapsed = true
+        dialog.show()
     }
 
-    /** Shows a persistent status line in the banner and, for results of user actions, a snackbar. */
-    private fun showStatus(message: String, busy: Boolean = false, notify: Boolean = false) {
-        statusView.text = message
-        statusProgress.visibility = if (busy) View.VISIBLE else View.GONE
-        if (notify) Snackbar.make(root, message, Snackbar.LENGTH_LONG).show()
-    }
+    internal fun openTextFile() = openDocument(REQUEST_TEXT)
 
-    private fun confirmDeletePack() {
-        val pack = currentPack ?: return
-        MaterialAlertDialogBuilder(this)
-            .setIcon(R.drawable.ic_delete)
-            .setTitle(R.string.delete_pack_title)
-            .setMessage(getString(R.string.delete_pack_message, pack.displayName))
-            .setNegativeButton(android.R.string.cancel, null)
-            .setPositiveButton(R.string.delete_language_pack) { _, _ -> deletePack(pack) }
-            .show()
-    }
+    // ---- Voices and packs ------------------------------------------------------------------
 
-    private fun confirmModelPackImport() {
+    internal fun confirmModelPackImport() {
         MaterialAlertDialogBuilder(this)
             .setIcon(R.drawable.ic_warning)
             .setTitle(R.string.import_pack_warning_title)
             .setMessage(R.string.import_pack_warning_message)
             .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.continue_import) { _, _ -> openDocument(REQUEST_MODEL_PACK) }
+            .show()
+    }
+
+    internal fun startVoiceImport() {
+        val candidates = packs
+        if (candidates.isEmpty()) {
+            showMessage(getString(R.string.status_no_model))
+            return
+        }
+        if (candidates.size == 1) {
+            voiceImportPackId = candidates.first().id
+            openDocument(REQUEST_VOICE)
+            return
+        }
+        val selected = ModelPackRepository.selectedPack(this)?.id
+        var choice = candidates.indexOfFirst { it.id == selected }.coerceAtLeast(0)
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.clone_choose_pack)
+            .setSingleChoiceItems(candidates.map { it.displayName }.toTypedArray(), choice) { _, which -> choice = which }
+            .setNegativeButton(android.R.string.cancel, null)
             .setPositiveButton(R.string.continue_import) { _, _ ->
-                openDocument(REQUEST_MODEL_PACK, "application/zip")
+                voiceImportPackId = candidates[choice].id
+                openDocument(REQUEST_VOICE)
             }
             .show()
     }
 
+    internal fun confirmDeletePack(pack: ModelPack) {
+        MaterialAlertDialogBuilder(this)
+            .setIcon(R.drawable.ic_delete)
+            .setTitle(R.string.delete_pack_title)
+            .setMessage(getString(R.string.delete_pack_message, pack.displayName))
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.action_delete) { _, _ -> deletePack(pack) }
+            .show()
+    }
+
     private fun deletePack(pack: ModelPack) {
-        showStatus(getString(R.string.status_deleting_pack, pack.displayName), busy = true)
-        deletePackButton.isEnabled = false
+        preview.stop()
+        voicesTab.setBusy(getString(R.string.status_deleting_pack, pack.displayName))
         thread(name = "pockettts-delete-pack") {
             runCatching { ModelPackRepository.deletePack(this, pack) }
                 .onSuccess {
-                    runOnUiThread { refreshData(getString(R.string.status_delete_success, pack.displayName)) }
+                    runOnUiThread {
+                        voicesTab.setBusy(null)
+                        refreshData(getString(R.string.status_delete_success, pack.displayName))
+                    }
                 }
                 .onFailure { error ->
                     Log.e(TAG, "DELETE_PACK_FAILED pack=${pack.id}", error)
                     runOnUiThread {
-                        deletePackButton.isEnabled = currentPack != null
-                        showStatus(getString(R.string.status_delete_failed, error.message.orEmpty()), notify = true)
+                        voicesTab.setBusy(null)
+                        showMessage(getString(R.string.status_delete_failed, error.message.orEmpty()))
                     }
                 }
         }
     }
 
-    private fun saveSettings() {
-        val pack = currentPack ?: return
-        val temperature = (temperatureInput.value * 100f).roundToInt() / 100f
-        val lsd = lsdInput.value.roundToInt()
-        val threads = threadsInput.value.roundToInt()
-        val sentencePauseMs = sentencePauseInput.value.roundToInt()
-        val maxTextTokens = maxTextTokensInput.value.roundToInt()
-        if (
-            temperature !in 0f..2f ||
-            lsd !in 1..8 ||
-            threads !in 1..8 ||
-            sentencePauseMs !in 0..2000 ||
-            maxTextTokens !in 10..200
-        ) {
-            showStatus(getString(R.string.invalid_parameters), notify = true)
-            return
-        }
-        ModelPackRepository.saveParameters(
-            this,
-            pack,
-            temperature,
-            lsd,
-            threads,
-            sentencePauseMs,
-            maxTextTokens
-        )
-        visibleVoices.getOrNull(selectedVoiceIndex)?.let {
-            ModelPackRepository.selectVoice(this, pack.id, it.id)
-        }
-        showStatus(getString(R.string.status_saved, pack.displayName), notify = true)
-    }
+    // ---- Engine ------------------------------------------------------------------------------
 
-    private fun openDocument(requestCode: Int, mime: String) {
-        startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            type = if (requestCode == REQUEST_MODEL_PACK) "*/*" else mime
-            if (requestCode == REQUEST_MODEL_PACK) putExtra(
-                Intent.EXTRA_MIME_TYPES,
-                arrayOf("application/zip", "application/x-zip-compressed", "application/octet-stream")
-            )
-            if (requestCode == REQUEST_VOICE) putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("audio/wav", "audio/x-wav", "audio/wave"))
-        }, requestCode)
-    }
-
-    private fun openTtsSettings() {
-        runCatching { startActivity(Intent("com.android.settings.TTS_SETTINGS")) }
-            .onFailure { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
-    }
-
-    private fun showAbout() {
+    internal fun showAbout() {
         MaterialAlertDialogBuilder(this)
             .setIcon(R.drawable.ic_info)
             .setTitle(R.string.about_title)
             .setMessage(getString(R.string.about_message, BuildConfig.VERSION_NAME, REPOSITORY_URL))
             .setNegativeButton(android.R.string.ok, null)
-            .setPositiveButton(R.string.open_repository) { _, _ ->
-                runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(REPOSITORY_URL))) }
-                    .onFailure {
-                        showStatus(getString(R.string.error_open_repository), notify = true)
-                    }
+            .setPositiveButton(R.string.open_repository) { _, _ -> openUrl(REPOSITORY_URL, R.string.error_open_repository) }
+            .show()
+    }
+
+    internal fun showLicenses() {
+        val entries = LICENSES.map { "${it.first} — ${it.second}" }.toTypedArray()
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.licenses_title)
+            .setItems(entries) { _, which ->
+                val asset = LICENSES[which].third
+                if (asset == null) openUrl("$REPOSITORY_URL/blob/main/THIRD_PARTY_NOTICES.md", R.string.error_open_repository)
+                else showLicenseText(LICENSES[which].first, asset)
+            }
+            .setNegativeButton(android.R.string.ok, null)
+            .setPositiveButton(R.string.licenses_all) { _, _ ->
+                openUrl("$REPOSITORY_URL/blob/main/THIRD_PARTY_NOTICES.md", R.string.error_open_repository)
             }
             .show()
+    }
+
+    private fun showLicenseText(title: String, asset: String) {
+        val text = runCatching { assets.open(asset).bufferedReader().use { it.readText() } }.getOrNull() ?: return
+        MaterialAlertDialogBuilder(this)
+            .setTitle(title)
+            .setMessage(text)
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
+    }
+
+    // ---- Documents ---------------------------------------------------------------------------
+
+    private fun openDocument(requestCode: Int) {
+        startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            when (requestCode) {
+                REQUEST_MODEL_PACK -> {
+                    type = "*/*"
+                    putExtra(
+                        Intent.EXTRA_MIME_TYPES,
+                        arrayOf("application/zip", "application/x-zip-compressed", "application/octet-stream")
+                    )
+                }
+                REQUEST_VOICE -> {
+                    type = "audio/wav"
+                    putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("audio/wav", "audio/x-wav", "audio/wave"))
+                }
+                REQUEST_TEXT -> type = "text/plain"
+            }
+        }, requestCode)
     }
 
     @Deprecated("Activity result API is sufficient for this framework-only activity")
@@ -396,34 +426,82 @@ class MainActivity : AppCompatActivity() {
         val uri = data?.data ?: return
         if (resultCode != RESULT_OK) return
         if (data.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION == 0) {
-            showStatus(getString(R.string.error_untrusted_document), notify = true)
+            showMessage(getString(R.string.error_untrusted_document))
             return
         }
-        showStatus(
-            if (requestCode == REQUEST_MODEL_PACK) {
-                getString(R.string.status_importing_pack)
-            } else getString(R.string.status_importing_voice),
-            busy = true
+        if (requestCode == REQUEST_TEXT) {
+            importTextFile(uri)
+            return
+        }
+        voicesTab.setBusy(
+            if (requestCode == REQUEST_MODEL_PACK) getString(R.string.status_importing_pack)
+            else getString(R.string.status_importing_voice)
         )
+        showTab(TAB_VOICES, animate = true)
+        val voicePack = packs.firstOrNull { it.id == voiceImportPackId } ?: ModelPackRepository.selectedPack(this)
         thread(name = "pockettts-import") {
             runCatching {
                 when (requestCode) {
                     REQUEST_MODEL_PACK -> ModelPackRepository.importPack(this, uri).displayName
                     REQUEST_VOICE -> {
-                        val pack = currentPack ?: error("Kein Sprachpaket ausgewählt")
-                        ModelPackRepository.importVoice(this, pack, uri).displayName
+                        val pack = voicePack ?: error(getString(R.string.error_no_model_voice))
+                        ModelPackRepository.importVoice(this, pack, uri).also {
+                            ModelPackRepository.selectPack(this, it.id)
+                        }.voices.last().displayName
                     }
                     else -> return@thread
                 }
-            }.onSuccess { name -> runOnUiThread { refreshData(getString(R.string.status_import_success, name)) } }
-                .onFailure { error ->
-                    Log.e(TAG, "IMPORT_FAILED", error)
-                    runOnUiThread {
-                        showStatus(getString(R.string.status_import_failed, error.message.orEmpty()), notify = true)
-                    }
+            }.onSuccess { name ->
+                runOnUiThread {
+                    voicesTab.setBusy(null)
+                    refreshData(getString(R.string.status_import_success, name))
                 }
+            }.onFailure { error ->
+                Log.e(TAG, "IMPORT_FAILED", error)
+                runOnUiThread {
+                    voicesTab.setBusy(null)
+                    showMessage(getString(R.string.status_import_failed, error.message.orEmpty()))
+                }
+            }
         }
     }
+
+    private fun importTextFile(uri: Uri) {
+        thread(name = "pockettts-open-text") {
+            runCatching {
+                val title = ModelPackRepository.queryDisplayName(this, uri).substringBeforeLast('.').trim()
+                val bytes = ByteArrayOutputStream()
+                var truncated = false
+                ModelPackRepository.openSelectedDocument(this, uri, R.string.error_open_text).use { input ->
+                    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                    while (true) {
+                        val read = input.read(buffer)
+                        if (read < 0) break
+                        val room = MAX_TEXT_FILE_BYTES - bytes.size()
+                        if (read > room) {
+                            bytes.write(buffer, 0, room)
+                            truncated = true
+                            break
+                        }
+                        bytes.write(buffer, 0, read)
+                    }
+                }
+                val text = ReaderText.decode(bytes.toByteArray(), truncated).trim()
+                require(text.any { it.isLetterOrDigit() }) { getString(R.string.error_empty_text) }
+                RecentTexts.add(this, title.ifBlank { ReaderText.title(text) }.let { ReaderText.title(it, 60) }, text)
+            }.onSuccess { item ->
+                runOnUiThread {
+                    listenTab.refresh()
+                    openPlayer(item.id, autoplay = true)
+                }
+            }.onFailure { error ->
+                Log.e(TAG, "OPEN_TEXT_FAILED", error)
+                runOnUiThread { showMessage(getString(R.string.error_open_text_detail, error.message.orEmpty())) }
+            }
+        }
+    }
+
+    // ---- ADB-only diagnostics ----------------------------------------------------------------
 
     private fun showSelfTest() {
         val status = selfTestView()
@@ -466,7 +544,7 @@ class MainActivity : AppCompatActivity() {
     private fun selfTestView(): TextView {
         val status = TextView(this).apply {
             text = getString(R.string.self_test_running)
-            setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_TitleMedium)
+            setTextAppearance(R.style.TextAppearance_PocketTts_Title)
             setTextColor(MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurface))
         }
         ViewCompat.setOnApplyWindowInsetsListener(status) { view, insets ->
@@ -565,75 +643,7 @@ class MainActivity : AppCompatActivity() {
         return SelfTestResult(output.absolutePath, samples, chunks, minimum, maximum)
     }
 
-    /** A labelled slider row (see `param_slider.xml`) for one generation parameter. */
-    private inner class ParamControl(
-        containerId: Int,
-        @StringRes label: Int,
-        @StringRes helper: Int,
-        @StringRes description: Int,
-        private val from: Float,
-        private val to: Float,
-        private val step: Float,
-        private val format: (Float) -> String
-    ) {
-        private val container: View = findViewById(containerId)
-        private val slider: Slider = container.findViewById(R.id.param_slider)
-        private val valueView: TextView = container.findViewById(R.id.param_value)
-
-        init {
-            container.findViewById<TextView>(R.id.param_label).setText(label)
-            container.findViewById<TextView>(R.id.param_helper).setText(helper)
-            slider.valueFrom = from
-            slider.valueTo = to
-            slider.stepSize = step
-            slider.value = from
-            slider.contentDescription = getString(description)
-            // The five included rows share child ids; values are always reloaded from preferences.
-            slider.isSaveEnabled = false
-            // Discrete ticks only where they stay readable (LSD steps, CPU threads).
-            slider.tickVisibilityMode = if ((to - from) / step <= 20f) {
-                TickVisibilityMode.TICK_VISIBILITY_AUTO_LIMIT
-            } else TickVisibilityMode.TICK_VISIBILITY_HIDDEN
-            slider.setLabelFormatter { format(it) }
-            slider.addOnChangeListener { _, value, _ -> valueView.text = format(value) }
-            valueView.text = EMPTY_VALUE
-        }
-
-        val value: Float get() = slider.value
-
-        var isEnabled: Boolean
-            get() = slider.isEnabled
-            set(enabled) {
-                slider.isEnabled = enabled
-                container.alpha = if (enabled) 1f else 0.6f
-            }
-
-        /** Shows [newValue] snapped to the slider grid, or an empty state when there is no pack. */
-        fun setValue(newValue: Float?) {
-            if (newValue == null) {
-                slider.value = from
-                valueView.text = EMPTY_VALUE
-                return
-            }
-            val steps = ((newValue.coerceIn(from, to) - from) / step).roundToInt()
-            slider.value = (from + steps * step).coerceIn(from, to)
-            valueView.text = format(slider.value)
-        }
-    }
-
-    /** Exposed-dropdown adapter that never filters, so every entry stays selectable. */
-    private class DropdownAdapter(context: Context, private val items: List<String>) :
-        ArrayAdapter<String>(context, R.layout.dropdown_item, items) {
-        override fun getFilter(): Filter = object : Filter() {
-            override fun performFiltering(constraint: CharSequence?) = FilterResults().apply {
-                values = items
-                count = items.size
-            }
-            override fun publishResults(constraint: CharSequence?, results: FilterResults?) = notifyDataSetChanged()
-        }
-    }
-
-    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
+    private fun dp(value: Int): Int = UiKit.dp(this, value.toFloat())
 
     private data class SelfTestResult(val file: String, val samples: Long, val chunks: Int, val min: Float, val max: Float)
     private data class MultiVoiceTestResult(
@@ -645,14 +655,35 @@ class MainActivity : AppCompatActivity() {
         val repeatHash: String
     )
 
-    private companion object {
-        const val TAG = "PocketTTS"
-        const val ACTION_SELF_TEST = "org.pockettts.android.engine.SELF_TEST"
-        const val ACTION_MULTI_VOICE_SELF_TEST = "org.pockettts.android.engine.MULTI_VOICE_SELF_TEST"
-        const val REPOSITORY_URL = "https://github.com/The-unknown-Shadowman/PocketTTS-Android-Engine"
-        const val REQUEST_MODEL_PACK = 1001
-        const val REQUEST_VOICE = 1002
-        const val SAMPLE_RATE = 24_000
-        const val EMPTY_VALUE = "—"
+    companion object {
+        const val EXTRA_TAB = "org.pockettts.android.engine.extra.TAB"
+        const val TAB_LISTEN = 0
+        const val TAB_VOICES = 1
+        const val TAB_ENGINE = 2
+        internal const val REPOSITORY_URL = "https://github.com/The-unknown-Shadowman/PocketTTS-Android-Engine"
+        private const val TAG = "PocketTTS"
+        private const val ACTION_SELF_TEST = "org.pockettts.android.engine.SELF_TEST"
+        private const val ACTION_MULTI_VOICE_SELF_TEST = "org.pockettts.android.engine.MULTI_VOICE_SELF_TEST"
+        private const val REQUEST_MODEL_PACK = 1001
+        private const val REQUEST_VOICE = 1002
+        private const val REQUEST_TEXT = 1003
+        private const val SAMPLE_RATE = 24_000
+        private const val MAX_TEXT_FILE_BYTES = 1_000_000
+        private const val STATE_TAB = "tab"
+        private const val STATE_VOICE_PACK = "voice_pack"
+
+        /** Component, license, bundled license asset (null: see THIRD_PARTY_NOTICES.md). */
+        private val LICENSES = listOf(
+            Triple("Inter", "SIL Open Font License 1.1", "licenses/Inter-OFL.txt"),
+            Triple("Literata", "SIL Open Font License 1.1", "licenses/Literata-OFL.txt"),
+            Triple("Sonic", "Apache-2.0", "licenses/sonic-LICENSE.txt"),
+            Triple("Pocket TTS", "MIT / CC BY 4.0", null),
+            Triple("PocketTTS.cpp", "MIT", null),
+            Triple("ONNX Runtime", "MIT", null),
+            Triple("SentencePiece", "Apache-2.0", null),
+            Triple("dr_libs", "MIT-0 / Public domain", null),
+            Triple("AndroidX, Material Components", "Apache-2.0", null),
+            Triple("Kotlin", "Apache-2.0", null)
+        )
     }
 }

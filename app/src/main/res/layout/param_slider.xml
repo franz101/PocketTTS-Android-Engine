@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="16dp"
+    android:layout_marginTop="20dp"
     android:orientation="vertical">
 
     <LinearLayout
@@ -15,10 +15,11 @@
 
         <TextView
             android:id="@+id/param_label"
-            style="@style/Widget.PocketTts.ParamLabel"
+            style="@style/Text.PocketTts.Title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:textSize="15sp" />
 
         <TextView
             android:id="@+id/param_value"
@@ -32,13 +33,13 @@
         android:id="@+id/param_slider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="-8dp"
-        android:layout_marginEnd="-8dp"
+        android:layout_marginStart="-12dp"
+        android:layout_marginEnd="-12dp"
         app:labelBehavior="floating" />
 
     <TextView
         android:id="@+id/param_helper"
-        style="@style/Widget.PocketTts.ParamHelper"
+        style="@style/Text.PocketTts.Caption"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 </LinearLayout>

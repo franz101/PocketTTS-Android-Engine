@@ -1,0 +1,10 @@
+<!-- Brand gradient at 135° (top-left to bottom-right). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:angle="315"
+        android:startColor="@color/pt_grad_start"
+        android:centerColor="@color/pt_grad_mid"
+        android:endColor="@color/pt_grad_end"
+        android:type="linear" />
+    <corners android:radius="24dp" />
+</shape>

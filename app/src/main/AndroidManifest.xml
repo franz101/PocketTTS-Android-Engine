@@ -9,9 +9,9 @@
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@drawable/pocket_voice_hero"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/pocket_voice_hero"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="false">
         <service
@@ -28,6 +28,7 @@
         <!-- A real read-aloud destination also makes this package discoverable
              to TTS clients whose queries include SEND / text/plain (issue #28). -->
         <activity android:name=".ReadAloudActivity" android:exported="true"
+            android:theme="@style/Theme.PocketTts.Player"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />

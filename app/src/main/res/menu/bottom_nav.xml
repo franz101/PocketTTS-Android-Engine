@@ -1,0 +1,5 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/nav_listen" android:icon="@drawable/ic_headphones" android:title="@string/tab_listen" />
+    <item android:id="@+id/nav_voices" android:icon="@drawable/ic_graphic_eq" android:title="@string/tab_voices" />
+    <item android:id="@+id/nav_engine" android:icon="@drawable/ic_tune" android:title="@string/tab_engine" />
+</menu>

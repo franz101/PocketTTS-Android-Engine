@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
+    android:clickable="true"
+    android:focusable="true">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <FrameLayout
+                android:layout_width="64dp"
+                android:layout_height="64dp">
+
+                <TextView
+                    android:id="@+id/voice_avatar"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:fontFamily="@font/inter_semibold"
+                    android:gravity="center"
+                    android:importantForAccessibility="no"
+                    android:textColor="@color/pt_on_gradient"
+                    android:textSize="24sp"
+                    tools:text="A" />
+
+                <ImageView
+                    android:id="@+id/voice_check"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="bottom|end"
+                    android:background="@drawable/bg_check_badge"
+                    android:importantForAccessibility="no"
+                    android:padding="5dp"
+                    android:src="@drawable/ic_check"
+                    app:tint="@color/pt_on_gradient" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/voice_name"
+                style="@style/Text.PocketTts.Title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textSize="17sp"
+                tools:text="Alba" />
+
+            <TextView
+                android:id="@+id/voice_language"
+                style="@style/Text.PocketTts.Caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                tools:text="English" />
+
+            <TextView
+                android:id="@+id/voice_badge"
+                style="@style/Text.PocketTts.Badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:drawablePadding="3dp"
+                tools:text="Fast" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/voice_preview"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="12dp"
+            android:background="@drawable/bg_round_button"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:id="@+id/voice_preview_icon"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_play_rounded"
+                app:tint="@color/pt_text" />
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/voice_preview_progress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:indeterminate="true"
+                android:visibility="gone"
+                app:indicatorColor="@color/pt_accent"
+                app:indicatorSize="42dp"
+                app:trackThickness="2dp" />
+        </FrameLayout>
+    </FrameLayout>
+</com.google.android.material.card.MaterialCardView>

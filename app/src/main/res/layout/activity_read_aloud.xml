@@ -1,138 +1,343 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Immersive player: scrolling reading text with the current sentence highlighted,
+     a translucent top bar and a bottom control panel. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/read_aloud_root"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/player_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:background="@color/player_background">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/read_aloud_toolbar"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/player_text"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingStart="26dp"
+        android:paddingEnd="26dp"
+        android:scrollbarStyle="outsideOverlay"
+        android:scrollbarThumbVertical="@drawable/bg_scroll_thumb"
+        android:scrollbars="vertical" />
+
+    <View
+        android:id="@+id/player_top_fade"
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:background="@drawable/bg_player_fade_top" />
+
+    <LinearLayout
+        android:id="@+id/player_top_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="?attr/actionBarSize"
-        app:navigationContentDescription="@string/navigate_back"
-        app:navigationIcon="@drawable/ic_arrow_back"
-        app:title="@string/read_aloud"
-        app:titleTextAppearance="?attr/textAppearanceTitleLarge" />
+        android:background="@color/player_background"
+        android:gravity="center_vertical"
+        android:minHeight="64dp"
+        android:orientation="horizontal"
+        android:paddingStart="6dp"
+        android:paddingEnd="16dp">
 
-    <androidx.core.widget.NestedScrollView
+        <ImageButton
+            android:id="@+id/player_back"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_player_round"
+            android:contentDescription="@string/navigate_back"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="@color/player_text" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/Text.PocketTts.Overline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/player_now_reading"
+                android:textColor="@color/player_text_dim"
+                android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/player_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="@font/inter_semibold"
+                android:maxLines="1"
+                android:textColor="@color/player_text"
+                android:textSize="15sp"
+                tools:text="The quick brown fox" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/player_voice_chip"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_player_pill"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="5dp"
+            android:paddingEnd="10dp">
+
+            <TextView
+                android:id="@+id/player_voice_avatar"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:fontFamily="@font/inter_semibold"
+                android:gravity="center"
+                android:importantForAccessibility="no"
+                android:textColor="@color/pt_on_gradient"
+                android:textSize="13sp"
+                tools:text="A" />
+
+            <TextView
+                android:id="@+id/player_voice_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:ellipsize="end"
+                android:fontFamily="@font/inter_semibold"
+                android:maxWidth="110dp"
+                android:maxLines="1"
+                android:textColor="@color/player_text"
+                android:textSize="13sp"
+                tools:text="Alba" />
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginStart="2dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_expand_more"
+                app:tint="@color/player_text_dim" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Bottom control panel. -->
+    <LinearLayout
+        android:id="@+id/player_panel"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:fillViewport="true">
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="-1dp"
+        android:layout_marginEnd="-1dp"
+        android:layout_marginBottom="-1dp"
+        android:background="@drawable/bg_player_panel"
+        android:clickable="true"
+        android:orientation="vertical"
+        android:paddingStart="24dp"
+        android:paddingTop="22dp"
+        android:paddingEnd="24dp">
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/player_progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="1000"
+            app:indicatorColor="@color/player_accent"
+            app:indicatorTrackGapSize="0dp"
+            app:trackColor="@color/player_surface_high"
+            app:trackCornerRadius="2dp"
+            app:trackStopIndicatorSize="0dp"
+            app:trackThickness="4dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingBottom="16dp">
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
 
             <TextView
-                style="@style/Widget.PocketTts.Helper"
-                android:layout_width="match_parent"
+                android:id="@+id/player_position"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp"
-                android:text="@string/read_aloud_help" />
-
-            <com.google.android.material.chip.ChipGroup
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp">
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/read_aloud_selection"
-                    style="@style/Widget.Material3.Chip.Assist"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:chipIcon="@drawable/ic_mic"
-                    app:chipIconTint="?attr/colorPrimary" />
-            </com.google.android.material.chip.ChipGroup>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/read_aloud_text_layout"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:hint="@string/read_aloud_text"
-                app:counterEnabled="true"
-                app:endIconMode="clear_text"
-                app:boxCornerRadiusTopStart="16dp"
-                app:boxCornerRadiusTopEnd="16dp"
-                app:boxCornerRadiusBottomStart="16dp"
-                app:boxCornerRadiusBottomEnd="16dp">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@id/read_aloud_text"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="top|start"
-                    android:inputType="textMultiLine|textCapSentences"
-                    android:minLines="6"
-                    android:saveEnabled="false"
-                    android:importantForAutofill="noExcludeDescendants" />
-            </com.google.android.material.textfield.TextInputLayout>
+                android:layout_weight="1"
+                android:fontFamily="@font/inter_medium"
+                android:fontFeatureSettings="tnum"
+                android:maxLines="1"
+                android:textColor="@color/player_text_dim"
+                android:textSize="12sp"
+                tools:text="Sentence 3 of 41" />
 
             <TextView
-                android:id="@id/read_aloud_status"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_marginTop="8dp"
-                android:accessibilityLiveRegion="polite"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?attr/colorPrimary" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/read_aloud_configure"
-                style="@style/Widget.Material3.Button.TextButton.Icon"
+                android:id="@+id/player_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="@string/read_aloud_configure"
-                app:icon="@drawable/ic_settings" />
+                android:fontFamily="@font/inter_medium"
+                android:fontFeatureSettings="tnum"
+                android:textColor="@color/player_text_dim"
+                android:textSize="12sp"
+                tools:text="0:42 / ~6:10" />
         </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
 
-    <!-- Bottom action bar -->
-    <LinearLayout
-        android:id="@+id/read_aloud_actions"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorSurfaceContainer"
-        android:orientation="horizontal"
-        android:paddingStart="16dp"
-        android:paddingTop="12dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="12dp">
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="112dp"
+            android:layout_marginTop="4dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@id/read_aloud_stop"
-            style="@style/Widget.Material3.Button.TonalButton.Icon"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="12dp"
-            android:layout_weight="1"
-            android:enabled="false"
-            android:minHeight="56dp"
-            android:text="@string/read_aloud_stop"
-            app:icon="@drawable/ic_stop"
-            app:iconGravity="textStart" />
+            <ImageButton
+                android:id="@+id/player_restart"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:layout_gravity="start|center_vertical"
+                android:background="@drawable/bg_player_round"
+                android:contentDescription="@string/player_restart"
+                android:src="@drawable/ic_replay"
+                app:tint="@color/player_text_dim" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@id/read_aloud_play"
-            style="@style/Widget.Material3.Button.Icon"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:enabled="false"
-            android:minHeight="56dp"
-            android:text="@string/read_aloud_play"
-            app:icon="@drawable/ic_play"
-            app:iconGravity="textStart" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/player_prev"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:background="@drawable/bg_player_round"
+                    android:contentDescription="@string/player_previous"
+                    android:src="@drawable/ic_skip_previous"
+                    app:tint="@color/player_text" />
+
+                <FrameLayout
+                    android:layout_width="112dp"
+                    android:layout_height="112dp"
+                    android:layout_marginStart="2dp"
+                    android:layout_marginEnd="2dp">
+
+                    <View
+                        android:id="@+id/player_glow"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_play_glow" />
+
+                    <FrameLayout
+                        android:id="@+id/player_play"
+                        android:layout_width="76dp"
+                        android:layout_height="76dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_brand_gradient_oval"
+                        android:clickable="true"
+                        android:contentDescription="@string/player_play"
+                        android:focusable="true"
+                        android:foreground="@drawable/bg_player_round">
+
+                        <ImageView
+                            android:id="@+id/player_play_icon"
+                            android:layout_width="34dp"
+                            android:layout_height="34dp"
+                            android:layout_gravity="center"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/avd_play_to_pause" />
+
+                        <com.google.android.material.progressindicator.CircularProgressIndicator
+                            android:id="@+id/player_loading"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:indeterminate="true"
+                            android:visibility="gone"
+                            app:indicatorColor="#CCFFFFFF"
+                            app:indicatorSize="70dp"
+                            app:trackThickness="2dp" />
+                    </FrameLayout>
+                </FrameLayout>
+
+                <ImageButton
+                    android:id="@+id/player_next"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:background="@drawable/bg_player_round"
+                    android:contentDescription="@string/player_next"
+                    android:src="@drawable/ic_skip_next"
+                    app:tint="@color/player_text" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/player_speed"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_gravity="end|center_vertical"
+                android:background="@drawable/bg_player_pill"
+                android:fontFamily="@font/inter_semibold"
+                android:fontFeatureSettings="tnum"
+                android:gravity="center"
+                android:minWidth="52dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:textColor="@color/player_text"
+                android:textSize="13sp"
+                tools:text="1×" />
+        </FrameLayout>
     </LinearLayout>
-</LinearLayout>
+
+    <!-- Empty / error state. -->
+    <LinearLayout
+        android:id="@+id/player_empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/player_background"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingStart="40dp"
+        android:paddingEnd="40dp"
+        android:visibility="gone">
+
+        <FrameLayout
+            android:layout_width="88dp"
+            android:layout_height="88dp"
+            android:background="@drawable/bg_brand_gradient_oval">
+
+            <ImageView
+                android:id="@+id/player_empty_icon"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_brand_wave" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/player_empty_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:fontFamily="@font/inter_semibold"
+            android:gravity="center"
+            android:letterSpacing="-0.02"
+            android:textColor="@color/player_text"
+            android:textSize="22sp"
+            tools:text="No voice installed yet" />
+
+        <TextView
+            android:id="@+id/player_empty_body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:lineSpacingMultiplier="1.2"
+            android:textColor="@color/player_text_dim"
+            android:textSize="15sp"
+            tools:text="Install a language pack to start listening." />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/player_empty_action"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:minWidth="200dp"
+            app:backgroundTint="@color/player_accent"
+            android:textColor="@color/player_background"
+            app:iconTint="@color/player_background"
+            tools:text="Go to Voices" />
+    </LinearLayout>
+</FrameLayout>

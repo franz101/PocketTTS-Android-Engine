@@ -419,7 +419,7 @@ internal object ModelPackRepository {
         }
     }
 
-    private fun openSelectedDocument(context: Context, uri: Uri, openErrorResource: Int): InputStream {
+    fun openSelectedDocument(context: Context, uri: Uri, openErrorResource: Int): InputStream {
         if (uri.scheme != ContentResolver.SCHEME_CONTENT) {
             throw SecurityException(context.getString(R.string.error_untrusted_document))
         }
@@ -461,7 +461,7 @@ internal object ModelPackRepository {
         return id
     }
 
-    private fun queryDisplayName(context: Context, uri: Uri): String {
+    fun queryDisplayName(context: Context, uri: Uri): String {
         context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
             if (cursor.moveToFirst()) return cursor.getString(0) ?: context.getString(R.string.new_voice)
         }
